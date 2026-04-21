@@ -1,0 +1,4540 @@
+Labbook - Comparative Evaluation of One-to-One Ortholog Identification Methods 
+==============================================================================
+
+Author: Anna Beketova
+
+17.07.2025
+
+What was done: Further investigation of tandems - inspection of conflicts, where the two algorithms chose different tandem genes, visualization of examples
+Where: /storage/EasyVectorOmics/cactus/results/compare_cactus_synteny/tandem_summary.txt and results/plots/tandem_conflict_network_query.png
+Problem: It seems like there are tandem clusters with high duplication density, and the algorithms are resolving this differently
+Time: ~6 hours
+Next step: Further investigation of the tandem clusters, visualisation of more examples
+
+18.07.2025 & 19.07.2025
+
+What was done: Further tandem investigation; evaluation cactus vs compleasm
+Where to find: /storage/EasyVectorOmics/cactus/results/compare_cactus_synteny/evaluation/cactus_compleasm_metrics.txt and missed_by_cactus_vs_compleasm.csv
+Time: ~8 hours
+Problems: a lot of cases, where different IDs from a tandem cluster are chosen by cactus and neighborhood algoriths; low agreement between cactus and compleasm (30,5% of compleasm pairs are recovered); possible conflict in RBH in Cactus: two directions choose different candidates that are paralogs to each other and have very similar sequences, therefore the pair with potential orthologs is discarded (could be the reason of the low agreement)
+Next steps: evaluate neighborhood against compleasm; investigate low agreement further; try to "soften" RBH of cactus to see if it can recover more compleasm orthologs
+
+21.07.2025
+
+What was done: Attempt to "soften" RBH in Cactus; Evaluation cactus (softened) vs compleasm; Evaluation neighborhood vs compleasm; Attempt to extract 1:1 ortholog lists from BUSCO output.
+Where to find: /storage/EasyVectorOmics/cactus/results/compare_cactus_synteny/evaluation/soft_*
+Problems: Softening of RBH didn't improve the recall; Low agreement between neighborhood algorithm and compleasm as well. Attempts to build 1:1 ortholog lists of BUSCO analysis deliver empty files.
+Time: ~5 hours
+Next steps: Investigate the missing pairs; Cactus (without RBH) vs compleasm; Try to extract 1:1 orthologs with BUSCO further
+
+22.07.2025
+
+What was done: Went over tandem-related files again; Dictionary check on compleasm files to investigate low agreement between neighborhood and compleasm.
+Where: /storage/EasyVectorOmics/cactus/results/compare_cactus_synteny/evaluation/
+Problems: Compleasm pairs are not found in the dictionaries - the problem could be in code
+Time: ~5 hours
+Next steps: Investigate further the low agreement of the algorithms and compleasm
+
+
+27.07.2025
+
+- Found an error at single-copy orthologs file from BUSCO. The script extract_sco.sh was rerun (job 397).
+- Executed one_to_one_busco.sh (job 398).
+- Found an error in BUSCO and compleasm - all species need to have a one lineage, instead of different due to busco ids that aren't overlapping
+	-> This could explain the issues with extracting of 1:1 orthologs from busco and low aggreement between compleasm and synteny algorithms. 
+- Downloading the right lineage (jobs 399-407)
+	-> problems with download; the downloaded file isn't unpacking as needed
+
+28.07.2025
+
+- Further attempts to install lineage mammalia, installed version odb12 and odb10, but both are delivering error while running compleasm (jobs 408-413)
+- There seems to be a conflict between lineage mammalia and Compleasm 0.2.7 version. Either need to proceed with eukaryota lineage but loose a lot of orthologs or try to install lesser Compleasm version and try with it again.
+
+31.07.2025
+
+- Decided to proceed with mammalia lineage and lesser Compleasm version.
+- Creating a new conda environment and installing Compleasm 0.2.6 version:
+
+mamba create -n compleasm026 -c bioconda -c conda-forge compleasm=0.2.6
+
+- downloaded mammalia_odb10 lineage for Compleasm and BUSCO
+- BUSCO lineage mammalia_odb10 is downloaded to the following path: /storage/EasyVectorOmics/busco/methods/busco_downloads/lineages/
+- Compleasm lineage is downloaded to: /storage/EasyVectorOmics/busco/material/busco_lineages/lineages/new_odb10/
+
+- Following jobs are run: 420-433 
+- Successful job for Compleasm for Canis: 426 - check output in methods/slurm_output/compleasm420.out
+- Sucessful job for BUSCO for Canis: 429 - check output in methods/slurm_output/busco_canis429.out
+- Other outputs are similar
+
+1.08.2025
+
+- Extracted single-copy orthologs from BUSCO and compleasm (jobs 446, 450)
+- Extracted 1:1 orthologs for each species pair (jobs 447, 448, 451)
+- Mapped transcript_ids to protein_ids (jobs 449, 452)
+
+2.08.2025 
+
+- Evaluated BUSCO vs Compleasm (jobs 453-455)
+
+4.08.2025
+
+- Created directory for PhyloTreePruner (PTP): /storage/EasyVectorOmics/phylotreepruner/
+- Installed PTP (see ptp_readme.txt in phylotreepruner/)
+
+- Built set of agreement BUSCO & Compleasm (B-set)
+- Compared Cactus vs B-set (job 458)
+- Union set of Cactus and B-set (BC-set) 
+- Attempt to remove disagreement in BC-set and create new ground truth for further - need to look at it further
+- Compared Neighborhood vs BC-set and vs B-set (job 459)
+
+5.08.2025
+
+- Corrected compare_cactus_nbh.py script and run it (jobs 460 and 466)
+- Corrected compare_cactus_b_set.py script and run it (job 461)
+- Corrected compare_nbh_b_bc_sets.py script and run it (job 462)
+- Run compare_tree_bc.sh (jobs 463-465)
+
+7.08.2025
+
+- Created a directory where all evaluation results are stored, separately from the whole algorithm files, for better access:
+/storage/EasyVectorOmics/evaluations/
+(see evaluations_readme.txt)
+
+- Moved compare_cactus_synteny/ directory from cactus/results/ to evaluations/
+
+- Moved slurm logs related to cactus and evaluation from cactus/ to cactus/slurm_outputs/ 
+
+12.08.2025
+
+- Renamed evaluations/ to ortholog_evaluation/
+- Moved compare_busco_compleasm/ directory from busco/results/ to ortholog_evaluation/
+- Moved content from compare_cactus_synteny/evaluation/ to compare_cactus_synteny/
+- Moved tree_evaluation/ to compare_cactus_synteny/
+- Moved compare_cactus_synteny/ from cactus/results/ to ortholog_evaluation/
+- Changed paths in evaluation scripts according to new directories
+- Moved results for old approaches to compare_cactus_synteny/old_results/
+- Edited and finished cactus_readme.txt, busco_readme.txt and evaluation_readme.txt
+- Renamed compare_nbh_b_bc_sets.py to compare_nbh_bc.py
+- Renamed busco_lineage421.out to compleasm_lineage421.out in busco/methods/slurm_output/
+- Moved scripts for old approaches for BUSCO and Compleasm to old_scripts/
+- Moved results for old approaches for BUSCO and compleasm to old_results/
+- Removed empty files from old busco output
+
+15.08.2025
+
+- Needed to rerun OrthoFinder with MSA and without the FASTA file protein_combined, since it was considered by OrthoFinder as a 5th species.
+- In FastQ_GSE125483_JK/:
+    - protein_combined.faa is moved from proteom/ to FastQ_GSE125483_JK/temp/ so that OrthoFinder doesn't consider it.
+    - OrthoFinder: job 516, results are in /storage/EasyVectorOmisc/FastQ_GSE125483_JK/proteom/OrthoFinder/Results_Aug15/
+- The sequence names in MSA and Tree files should correspont to PTP input.
+- They were "fixed" with fix_names.sh script in phylotreepruner/methods/ and saved to results/ (job 521)
+- PhyloTreePruner was performed using files with fixed names and phylotreepruner.sh script (jobs 517-520 and 522). Results are saved to results/pruned/
+
+18.08.2025
+
+- In cactus/methods/ created ref_free_approach/ for scripts with new Cactus approach
+- Created conda venv for reference-free approach, where bedtools and bedops were planned to be installed:
+conda create -n venv_ref_free python=3.10
+conda activate venv_ref_free
+conda install -c bioconda bedtools
+
+- During bedops installation there could be downgrade for python and openssl, so it was decided to remove venv_ref_free and create separate environments for bedtools and bedops.
+conda env remove -n venv_ref_free
+
+- Created conda venv for bedtools:
+conda create -n bedtools-env -c bioconda bedtools
+To activate: conda activate bedtools-env
+
+- Created conda venv for bedops:
+conda create -n bedops-env -c bioconda bedops
+To activate: conda activate bedops-env 
+
+- Created readme for new cactus approach (cactus/cactus_ref_free_readme.txt)
+
+- Written script for halLiftover.sh and attempted to execute it (jobs 525, 531, 532), but it failed.
+Turns out halLiftover accepts only PSL or BED. 
+Need to convert GTFs to BED.
+
+- Written script halLiftover.sh and attempted to execute it (jobs 525, 531, 532), but it failed.
+Turns out halLiftover accepts only PSL or BED. 
+Need to convert GTFs to BED.
+
+- Written script gtf_to_bed.sh and executed it (jobs 537, 544, 547). Results are in cactus/results/ann_genes/
+
+- Executed halLiftover.sh once again with .bed6 files (jobs 548, 549). Results are in cactus/results/ref_free_approach/gtf_projections/
+Accidentally stated .gtf format as output file, even though results will be in .bed6 format.
+Need to rename the files when they are ready, and change the script.
+
+19.08.2025
+
+- halLiftover raised errors about integer instead of expected + or - character
+- Turns out there is a problem in raw GTF file for Rat (material/sex_experiment/gtf_Rat.gtf), where gene called Smokl2 is saved like Smokl 2
+- convert2bed doesnt recognize the space and takes Smokl as separate gene and puts 2 in the next column
+- The rat GTF needs to be cleaned before conversion to BED - script methods/ref_free_approach/clean_gtf.sh (job 551)
+- run gtf_to_bed.sh with updated Rat gene ID (job 552)
+- corrected halLiftover.sh and run (job 553)
+- There were still errors with spacing, corrected the script gtf_to_bed.sh so that the spaces in "gene_id" are replaced with _ and executed (job 556)
+- Executed halLiftover.sh using corrected GTFs (job 559)
+
+20.08.2025
+
+- Discovered empty output from PTP analysis, attempted to resolve (jobs 562, 563)
+- The reason is probably extra space during "fixing" the labels of MSA and trees, need to change the script
+
+- written and executed script for intersection of projections, see cactus/methods/ref_free_approach/intersect_proj.sh (jobs 568, 569)
+
+22.08.2025
+
+- Written script for reciprocal pairs extraction, see cactus/methods/ref_free_approach/extract_reciprocal.sh (jobs 575,576,577,594)
+
+24.08.2025
+
+- Written script for spliting reciprocal pairs into 1:1 and 1:many: cactus/methods/ref_free_approach/split_pairs.sh(jobs 603 and 604). Results are in:
+cactus/results/ref_free_approach/resolved_one_to_many/ 
+cactus/results/ref_free_approach/reciprocal
+cactus/results/ref_free_approach/
+
+- Noticed strange repeating ids in 1:1 pair files and reciprocal ids. Fixed column order in extract_reciprocal.sh and rerun (job 605)
+
+- Rerun split_pairs.sh again (job 608)
+
+- noticed that there are only 1:many pairs for can-mac and rat-mus, the rest of the species pairs have their gene pairs in 1:1.
+This is to be expected. In rodents genome there are a lot of recent duplications (source: https://pmc.ncbi.nlm.nih.gov/articles/PMC2680341/).
+The most of duplications can be filtered away with the strict reciprocal filtering. 
+Further check still needed to ensure this isnt a technical mistake. 
+
+For PTP:
+
+- Attempt to resolve the issue with PTP empty output: Changed the script fix_labels.sh so that there are no spacing between > and label in the IDs; rerun the script (job 606)
+- Rerun phylotreepruner.sh with min species 3 and threshold 0.5 (job 607)
+
+25.08.2025
+
+- Couldn't find halAlignedSequences in existing virtual environments. Prepared everything for installation:
+eval "$(/storage/EasyVectorOmics/busco/miniconda3/bin/conda shell.bash hook)"
+eval "$(mamba shell hook --shell bash)"
+conda create -n hal-env -c conda-forge python=3.10 cmake make gcc hdf5 zlib
+conda activate hal-env
+cd /storage/EasyVectorOmics/cactus/
+mkdir tools/
+cd tools/
+git clone https://github.com/ComparativeGenomicsToolkit/hal.git
+git clone https://github.com/ComparativeGenomicsToolkit/sonLib.git
+
+- Built the halTools binaries with make command
+
+- Turns out there is no such command halAlignedSequences. The correct alternative needs to be found
+
+26.08.2025
+
+For PTP:
+- 1:1 othologs are extracted from PTP results, see /storage/EasyVectorOmisc/phylotreepruner/results/ptp_one_to_one_pairs.tsv (job 611)
+
+27.08.2025
+
+- alignments are extracted with hal2maf for 1:many pairs (jobs 612-615)
+- mapped regions for each ortholog candidate are extracted with halliftover (jobs 616-618)
+
+28.08.2025
+
+- halliftover delivered a lot of fragmented entries, that are need to be merged to avoid false cound during neighborhood support analysis
+- bedtools merge has parameter -d N that defines a gap length that will be merged together
+- to make sure the right parameter is chosen, a distance histogram of liftovers for each gene is calculated, the -d parameter was chosen based on median (jobs 623-626)
+- neighborhood support was analysed with bedtools intersect (jobs 619-622)
+
+1.09.2025
+
+- the fact of only can-mac and rat-mus 1:many pairs is being adressed
+
+7.09.2025
+
+- implemented new approach that takes not gene symbols but stable gene IDs
+
+8.09.2025
+
+- changed paths in scripts for stable_id directory
+
+- changed script split_pairs.sh: changed logic of 1:1 pairs extraction: now it gets 1:many pairs and extracts only those genes from the list of reciprocal pairs that are not involved in 1:many -> these are 1:1
+
+- changed script get_alignments.sh: added function, added handling of other species pairs
+-> there were a lot of genes from 1:many that werent presented in the cds only annotation, which is expected because 1:many are based on gene-only annotation
+
+9.09.2025
+
+What was done: Checked the scripts from the beginnig of the cactus pipeline until the alignment extraction; Changed GRIS script for new 1:many pairs and new numeric IDs; calculated GRIS; Attempt to resolve the issue with missing genes (see Problems)
+Where: /storage/EasyVectorOmics/cactus/results/ref_free_approach/resolved_one_to_many/stable_id/
+Time: 8 hours
+Problems: During the calculation there were a lot of CDS (~3000), for which alignments were extracted, but they weren't found in the annotation - need to investigate further
+Next steps: Resolve the missing genes issue; calculate GRIS for the rest of the species; neighborhood analysis
+
+15.09.2025
+
+What was done: Resolved issue with missing genes during GRIS calculation; Calculated GRIS for all species pairs; Started neighborhood analysis of the target ortholog candidates
+Where: /storage/EasyVectorOmics/cactus/results/ref_free_approach/resolved_one_to_many/stable_id/GRIS_<species_pair>.txt
+Time: 6 hours
+Problem: To resolve tandems, the simple count of genes in the neighborhood isn't enough - it should be a conserved region of orthologous neighbors. Further adjustment of this pipeline step is needed, so that the orthologous neighbours can be identified.
+Next steps: Write the script for adjusted neighborhood analysis and run it; Tandem/translocated classification
+
+16.09.2025
+
+What was done: Projected source gene coordinates onto the target genome; Started neighborhood support analysis
+Where: /storage/EasyVectorOmics/cactus/results/ref_free_approach/resolved_one_to_many/stable_id/liftover_<species_pair>/
+Time: 8 hours
+Problems: Intersection of strict coordinates with the annotation identifies no neighborhood context - the coordinates are intersecting with their own protein-coding part. The intervals need to be expanded in both directions, so that the neighboring CDS are identified. Suitable tool needs to be found for this.
+Next step: Resolve the issue with neighborhood and extract the information needed for duplicates resolving
+
+17.09.2025
+
+What was done: Updated cactus ref. free approach readme; Extracted alignments for mac-can and calculated GRIS to check whether the alignments are symmetrical
+Where: /storage/EasyVectorOmics/cactus/results/ref_free_approach/resolved_one_to_many/stable_id/alignments_mac_can/ for alignments; resolved_one_to_many/stable_id/GRIS_<species_pair>.txt for GRIS scores
+Time: 6 hours
+Problems: "At the first glance" it appears that the alignments are not symmetrical (some manually picked pairs show different alignment length and GRIS score). Further investigation and research needed.
+Next steps: Finish investigation on alignment symmetry and decide whether to use reciprocal GRIS; implement correct neighborhood check script and resolve the 1:many pairs with synteny at first
+
+
+29.09.2025
+
+Executed halSynteny with new parameters, provided and calculated with a script (see methods/get_halsynteny_parameters.sh)
+  - Executed jobs 717-719, see output in Bioserver: /storage/EasyVectorOmics/cactus/slurm_outputs/
+
+
+30.09.2025
+
+Converted PSL files to bed (see methods/psl_to_bed.sh)
+  - Executed jobs 720, 721, 723-727, 731, 732, 734, 735, 737,  see output in Bioserver: /storage/EasyVectorOmics/cactus/slurm_outputs/
+
+Calculated and printed statistics for synteny blocks (see methods/data_check/block_length.sh)
+  - Executed jobs 722, 728-730, 733, see output in Bioserver: /storage/EasyVectorOmics/cactus/slurm_outputs/
+  - Statistics are in block_length733.out
+
+Executed bedtools intersect (see methods/find_genes_in_blocks.sh)
+  - Executed jobs 736, 738, see output in Bioserver: /storage/EasyVectorOmics/cactus/slurm_outputs/
+
+1.10.2025
+
+It was decided to rerun halSynteny with parameters that are used in publications. 
+  - Need to define exact parameters
+
+Added cactus_readme.txt to the repository
+
+2.10.2025
+
+After research it was decided to use --minBlockSize 50kb and --maxAnchorDistance 50kb, since it was widely used in mammalian genome analyses.
+  - process_hal.sh was adjusted to those parameters and rerun
+  - The files with 50kb parameters are saved separately with *_50kb.psl naming in the same results/halsynteny_output/ directory.
+
+6.10.2025
+
+What was done : Rerun halSynteny with 50kb parameters; checked the data; rerun bedtools intersect; created final output tables for regions and genes
+Where: gene_relationship_classifier repository, cactus-ref-free branch, scripts are in methods/ and methods/data_check/ The results are on Bioserver under /storage/EasyVectorOmics/cactus/results/halsynteny_output/ and results/data_check/
+Time: 12 hours
+Next steps: Assign neighborhood scores to gene-pairs; Get reciprocal best ortholog mappings
+
+12.10.2025
+
+What was done: plotted distribution of number of genes per synteny block for each species pair - forward and reverse
+Where: gene_relationship_classifier repository, cactus-ref-free branch, the script is in methods/data_check/ . The plots are in plots/
+Time: 8 hours
+Problem: There are lots of blocks that contain very few genes (~120 blocks containing 1-3 genes). Need to decide what to do with them. They could still be useful for ortholog identification. Also there are some blocks without genes either in query or in target (e.g. 49 blocks in Dog and 87 in Macaca). They might need to be filtered out.
+Next steps: Adress the blocks with no genes and with few genes.
+
+16.10.2025
+reviewed tasks that are left
+
+
+17.10.2025
+started plot generation
+
+
+19.20.2025
+----------
+
+Generated piecharts, started generating conserveness but have a problem that there is only one reciprocal region which is not possoble. need to look further
+jobs 774-777
+
+the problem was solved
+
+plots are in results/data_check/conservativeness/
+
+What was done: pie chart plots for the ratio number of unique genes in synteny blocks / total number of genes per species; plots for conservativeness ratio
+Where: gene_relationship_classifier repository, cactus-ref-free branch, the scripts are in methods/data_check/ . The plots are in plots/
+Time: 9 hours
+Next steps:  plot total kilobases covered
+
+
+20.10.2025
+----------
+
+created plots for coverage ratio: total_block_length / whole_genome_length
+->jobs 778-780
+
+there was scaling problem in the coverage plots: for example in can-mac the mac bar is larger due to the fact that Macaca genome is larger than Canis one
+-> solved: originally the bar plots showed absolute bp count but the percent shows relative number of bp in block/whole genome, thats why there were inconsistance in bar height and ratio. That was fixed so that the bar height is corresponding to the ratio. 
+-> jobs 782, 783
+
+
+About conservativeness plots: 
+
+- need to answer the questions:
+    - all regions found in one species are also found in the other one? 
+    - we have everywhere 100% is this correct?
+        - Test with e.g. 90% of overlap, to ensure if its correct
+
+Fixed:
+What was the problem: 
+- the chromosome names were overwritten with a single identical label, all intervals were turned into one singöe "pseudochromosome"
+- pyranges identifies overlaps only if they on same chromosome, and because of one single chromosome everything was overlapped
+- The true chromosome names were kept and ther were no false overlaps anymore
+-> job 784
+
+Still need to test with threshold 90% to make sure everything works fine
+
+
+What was done: Created plots for coverage ratio: total_block_length / whole_genome_length ; fixed the scaling in the plots; fixed conservativewness plots
+Where: gene_relationship_classifier repository, cactus-ref-free branch, the scripts are in methods/data_check/ . The plots are in plots/
+Time: 8 hours
+Next steps: test conservativeness script with 90% thershold; check the script that select largest protein sequence before running diamond
+
+21.10.2025
+----------
+
+Tasks for today:
+- Test with treshold 90% for conservativeness - DONE
+- Boxplot for each type of plot to summarize the results: - DONE
+  - a single boxplot from all the values that i have in the bars, where each point will represent a pair of species target/query
+- Check the script that selects largest protein sequence before running diamond
+- Check the parameters for halSynteny in the gitlab issue
+
+Starting with threshold:
+
+- Changed in the function identify_reciprocal_pairs() threshold from 0.5 to 0.9 (script plot_region_conservativeness.py)
+- Changed path and filename to differ the results from the 0.5 (plots are in directory conservativeness/overlap90/)
+- Changed colors of the bars and size of the plot
+-> job 785, 786
+
+Boxplot implementation:
+
+- It was decided to put the boxplot part inside each script so that all plots needed are generated immediately
+- The pairs forward and reverse are marked as dots with different colors
+- with boxplots, summary table is created where the values of all pairs query and target are summarized
+-> For conservativeness: jobs 787-794, 799, 800
+  - Adjust parameter THRESH for overlap (0.5, 0.9 etc)
+-> For total_number_genes: jobs 796 and 797
+-> For coverage: jobs 795 and 798
+
+- Found out that the conservativeness plots are looking at reciprocal genes, not at the regions in bp
+  - Changed the script for that, new results are in plots/overlap<treshold>/length/
+  -> jobs 801-804
+
+Tasks for tomorrow:
+- Check the script that selects largest protein sequence before running diamond
+- Check the parameters for halSynteny in the gitlab issue
+- Other tasks that could be given after the meeting
+
+What was done (21.10): test of conservativeness plot with 90% treshold; boxplots; minor adjustments to the plot scripts
+Where: gitlab repo
+Time: 8 hours
+Next steps: Check the script that selects largest protein sequence before running diamond; Check the parameters for halSynteny in the gitlab issue;Other tasks that could be given in the meeting
+
+22.10.2025
+----------
+
+Following was assigned in the meeting:
+
+- FINISH reference pipeline by the end of the week2, Priority!!
+- make synteny plots (circos plots or other, look at the slides of KOGE, it was mentioned there, maybe cactus or halsynteny themselves offer)
+
+Tasks for today:
+- Check the parameter calculation for halSynteny in the gitlab issue #3 and compare with bash script `get_halsynteny_parameters.sh`, that calculates the parameters as well
+
+### Bash script for parameter calculation (`get_halsynteny_parameters.sh`) vs the provided calculation
+
+What the bash script does:
+1. Calculates intergenic distances
+2. Computes median from the distances
+3. Calculates minBlockSize = median *2 and maxAnchorDistance=median*20
+-> Uses fixed multipliers
+-> Tends to give stricter (smaller) parameter values since it uses a median
+
+Parameter calculation provided in the issue:
+- Defines 90th percentile of intergenic distances as maxAnchorDistance (includes 90% of typical gene gaps)
+- minBlockSize = 0.5 * maxAnchorDistance
+-> The resulting parameters are larger and less stricter than from the script
+-> Allows longer synteny blocks and fewer breaks
+-> Likely more suitable in practice, since it scales directly with the actual distribution of intergenic distances and adapts to genome-specific characteristics
+
+The studies do not mention explicitly 90th percentile of intergenic distances, but their recommendations imply a similar rationale:
+- halSynteny parameters should be chosen based on genome characterisitcs (gene density, intergenic interval legnth, assembly quality)
+- Synteny identification is easier in species with higher gene density and shorter intergenic regions (https://doi.org/10.1186/s12859-018-2026-4)
+- In practice, maxAnchorDistance should be large enough to keep real neighboring genes in the same synteny block, but small enough to avoid merging across large non-conserved or gene-poor regions
+- minBlockSize is chosen so that only real, biologically meaningful conserved regions are kept, while very short, accidental similarities are ignored
+-> 50 kb parameters correspond typically ~80-90th percentile in mammals, so this should be enough for high-quality synteny regions
+
+
+What was done: Checked the script that calculates halSynteny parameters and compared it to the calculation formulas in the issue
+Where: gene_relationship_classifier repository, issue #3
+Time: 4 hours
+Next steps: Check the script that selects largest protein sequence before running diamond; normalize region GRIS score
+
+23.10.2025
+----------
+
+Tasks for today: 
+- Check the script that selects largest sequence before running diamond
+- normalize region GRIS score
+
+What the script does:
+- Reads each FASTA file
+- For each sequence extracts the parent gene ID from the FASTA description line
+- Groups sequences by parent gene
+- If multiple sequences belong to the same parent gene, compares their lengths and keeps the longest one
+
+Important: The script does NOT check whether the sequences are protein-coding or non-protein-coding!
+It can work with aminoacid and nucleotide sequences
+ 
+`protein_combined.faa` is the input for DIAMOND. It is connected to only protein-coding genes.
+
+I need to check what exactly was used as an input for largest sequence extraction script 
+- protein_combined.faa or nucleotide one
+And also need to ask where the proteome fasta comes from, was it obtained from a database or translated manually?
+because if obtained from the DB, there are only sequences from protein-coding genes and no other junk that just got accidentally translated
+  -> need to ask tomorrow
+
+There are two possible cases of how it was performed:
+
+Case 1: Nucleotide -> protein fasta (translation or obtained) -> Protein FASTA -> Script selects longest isoform -> diamond
+  - This way the non-coding sequences are filtered out during the translation step
+  - Protein FASTA file is searched with the script
+  - Longest sequence selected
+
+Case 2: Nucleotide -> script selects longest isoform -> translation -> diamond
+  - Nucleotide fasta contains protein-coding and non-protein-coding sequences
+  - Both can have multiple isoformes
+  - The longest one is picked with the script, but this could be protein sequence or transcript (one junk peptide per non-coding gene)
+  - Translation step can translate the transcript sequence into short peptide sequences as well (if translation is manually)
+  - But this shouldn't influence our results, because the ortholog identification is done with synteny, and diamond only used for scores
+
+-> need to clarify how it was performed and where the protein file is from 
+
+What was done: checked the script that picks the longest sequence for diamond
+Where: -
+Time: 5 hours
+Problems: Need to know where the protein fasta is from
+
+24.10.2025
+----------
+
+Tasks for today: 
+- Check how many genes do we have in the provided mapping table and how many genes do we have in the gtf annotation
+- Confirm if those genes that were discarded from cactus tables are also not found in the mapping table
+
+Total number of genes in the provided mapping table: 88327
+ (wc -l <filename> and substract the header)
+
+  - Expected number of genes pro species: 88327 / 4 = ~22000 
+  
+  - For Canis lupus familiaris: 21175 
+  (awk -F'\t' '$5 == "Canis lupus familiaris" && $0 !~ /^#/' updated_pipeline/material/sex_experiment/protein_gene_map.tsv | wc -l)
+
+  - For Macaca fascicularis: 21813
+  (awk -F'\t' '$5 == "Macaca fascicularis" && $0 !~ /^#/' updated_pipeline/material/sex_experiment/protein_gene_map.tsv | wc -l)
+
+  - For Rattus norvegicus: 23154
+  (awk -F'\t' '$5 == "Rattus norvegicus" && $0 !~ /^#/' updated_pipeline/material/sex_experiment/protein_gene_map.tsv | wc -l)
+
+  - For Mus musculus: 22185
+  (awk -F'\t' '$5 == "Mus musculus" && $0 !~ /^#/' updated_pipeline/material/sex_experiment/protein_gene_map.tsv | wc -l)
+
+
+Number of genes (all types - protein-coding and non-coding) in the annotation: 
+
+  - For Canis lupus familiaris (GTF file): 37912
+  (awk '$3 == "gene" && $0 !~ /^#/' results/ann_genes/Canis_genes_only.gtf | wc -l)
+
+  - For Canis lupus familiaris (BED6 file): 37912
+  (wc -l results/ann_genes/Canis_genes_only_stableid.bed6)
+
+  - For Macaca fascicularis (GTF file): 33270
+  (awk '$3 == "gene" && $0 !~ /^#/' results/ann_genes/Macaca_genes_only.gtf | wc -l)
+
+  - For Macaca fascicularis (BED6 file): 33270 
+  (wc -l results/ann_genes/Macaca_genes_only_stableid.bed6)
+
+  - For Rattus norvegicus (GTF file): 38413
+  (awk '$3 == "gene" && $0 !~ /^#/' results/ann_genes/Rat_genes_only.gtf | wc -l)
+
+  - For Rattus norvegicus (BED6 file): 38413
+  (wc -l results/ann_genes/Rat_genes_only_stableid.bed6)
+
+  - For Mus musculus (GTF file): 39794
+  (awk '$3 == "gene" && $0 !~ /^#/' results/ann_genes/Mus_genes_only.gtf | wc -l)
+
+  - For Mus musculus (BED6 file): 40291 
+  (wc -l results/ann_genes/Mus_genes_only_stableid.bed6)
+    -> 497 entries more are presented in BED6, it seems like something went wrong during conversion of GTF to BED
+    -> in BED file there are also 39794
+
+    okay something is wrong with Mouse annotation files, because now i run wc -l and the command with exact filtering
+    on GTF file and results are different. The simple counting gives more genes then filtering. 
+    maybe there is something more than just genes in the file or some incorrect lines
+    other species results of running both commands don't differ 
+
+
+Number of protein-coding genes in the annotation:
+
+- For Canis lupus familiaris (GTF file): 21210
+  (awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Canis_genes_only.gtf | wc -l)
+  -> in the table: 21175 -> 35 genes are discarded
+
+Finish later with other species
+
+25.10.2025
+----------
+
+Tasks for today:
+- Investigate whats wrong with Mouse annotation files
+  - Check if there are some extra or incomplete rows
+  - Check the script that filters the annotation keeping gene only
+  - Check the number of genes in the original annotation
+- Finish counting protein-coding genes in the annotation and comparing with the table
+- Look through the GRIS score script once again
+- Rerun region GRIS score with normalization with mean GRIS  
+
+Investigating the original Mouse annotation:
+
+Total number of entries: 3170806
+(wc -l material/sex_experiment/gtf_Mus.gtf)
+
+Total number of gene-entries: 42856
+(awk '$3=="gene" && $0 !~ /^#/' material/sex_experiment/gtf_Mus.gtf | wc -l)
+
+What gene biotypes we actually have:
+(awk '$3=="gene" && $0!~/^#/ { if (match($0,/gene_biotype "([^"]+)"/,m)) print m[1]; else print "NA" }' material/sex_experiment/gtf_Mus.gtf | sort | uniq -c | sort -nr)
+
+  22198 protein_coding
+  13517 lncRNA
+   2443 pseudogene
+   1330 snoRNA
+   1227 miRNA
+   1000 snRNA
+    507 transcribed_pseudogene
+    422 tRNA
+     86 misc_RNA
+     64 rRNA
+     41 ncRNA
+      9 antisense_RNA
+      4 RNase_P_RNA
+      3 scRNA
+      2 Y_RNA
+      1 telomerase_RNA
+      1 RNase_MRP_RNA
+      1 ncRNA_pseudogene
+
+  -> Number of pseudogenes-involved entries: 2951 (just sumed up)      
+  -> That means number of genes without pseudogenes: 42856 − 2951 = 39905
+
+-> the sum corresponds to the total number of gene entries = 42856   
+-> GTF file gene-only: 39794
+-> BED file: 39794
+-> BED6 file (actually used further): 40291
+
+The working flow with annotation was following: 
+original GTF -> gene-only GTF (with the script methods/filter_ann.sh) -> bed file -> bed6 file
+
+First inconsistance is in original GTF -> gene-only GTF (39905 vs 39794) -> 191 gene got missing during the filtering
+The script filter_ann.sh was filtering using following command:
+awk -F'\t' '$3 == "gene" && $9 !~ /pseudogene/' material/sex_experiment/gtf_Mus.gtf > results/ann_genes/Mus_genes_only.gtf
+ -> If a non-pseudogene gene happens to have the string pseudogene in some other attribute field, it would be incorrectly excluded
+
+Lets try to filter using "safer" command:
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 !~ /gene_(bio)?type ".*pseudogene"/' material/sex_experiment/gtf_Mus.gtf | wc -l
+  -> Number of entries: 40402
+  -> so in this case we become too much genes! 497 more!
+
+Lets diagnose precisely:
+
+- Count pseudogenes by biotype/type:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt ~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Mus.gtf
+        -> 10364
+
+- How many genes mention “pseudogene” anywhere (broad substring):
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/' material/sex_experiment/gtf_Mus.gtf | wc -l
+        -> 10475
+
+
+- The 191 over-excluded lines (substring hits that are NOT pseudogene biotype/type):
+awk -F'\t' '
+  $3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (!(bt ~ /pseudogene/)) print
+  }' material/sex_experiment/gtf_Mus.gtf | wc -l
+        -> actually 111
+        -> they have "pseudogene" in the description
+
+- The “missing” pseudogenes from early count likely missed (present by type, not caught before):
+  - See which pseudogene subtypes exist and make sure the earlier summary covered all.
+  awk -F'\t' '
+  $3=="gene" && $0!~/^#/ {
+    has_bt = match($0,/gene_biotype "([^"]+)"/,mb);
+    has_gt = match($0,/gene_type "([^"]+)"/,mt);
+    bt = has_bt? mb[1] : (has_gt? mt[1] : "");
+    if (bt ~ /pseudogene/) print bt
+  }' material/sex_experiment/gtf_Mus.gtf | sort | uniq -c | sort -nr
+
+  9680 pseudogene
+    507 transcribed_pseudogene
+    153 V_segment_pseudogene
+     12 J_segment_pseudogene
+     10 D_segment_pseudogene
+      1 ncRNA_pseudogene
+      1 C_region_pseudogene
+
+- Rows with NO gene_biotype and NO gene_type (kept by the biotype-aware filter by design):
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 !~ /gene_biotype/ && $9 !~ /gene_type/' \
+  material/sex_experiment/gtf_Mus.gtf | wc -l
+          -> 0
+
+--------------------------------------------------------------------------------------------
+
+I tried different approach to identify gene_biotypes and count the entries there 
+since there are definitely mismatches between number of pseudogenes from the manual count and from the command
+
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' material/sex_experiment/gtf_Mus.gtf | sort -k2,2nr
+
+protein_coding 22198
+lncRNA 13517
+pseudogene 9680
+snoRNA 1330
+miRNA 1227
+snRNA 1000
+transcribed_pseudogene 507
+tRNA 422
+V_segment 374
+V_segment_pseudogene 153
+misc_RNA 86
+J_segment 82
+rRNA 64
+ncRNA 41
+C_region 20
+D_segment 14
+J_segment_pseudogene 12
+D_segment_pseudogene 10
+antisense_RNA 9
+other 7
+RNase_P_RNA 4
+scRNA 3
+Y_RNA 2
+C_region_pseudogene 1
+ncRNA_pseudogene 1
+RNase_MRP_RNA 1
+telomerase_RNA 1
+  -> Expected total: 50766
+  -> Expected number of all pseudogenes: 9680+507+153+12+10+1+1 = 10364
+
+Confirming total number of gene entries:
+awk -F'\t' '$3=="gene" && $0 !~ /^#/' material/sex_experiment/gtf_Mus.gtf | wc -l
+    -> 50766 - confirmed
+
+Confirming number of gene entries that have pseudogenes in gene_biotype:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt ~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Mus.gtf
+      -> 10364 - confirmed
+
+Number of gene entries that involve string "pseudogene" anywhere in the rows:
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/' material/sex_experiment/gtf_Mus.gtf | wc -l
+  -> 10475
+  -> Expected number of entries having the string "pseudogene" anywhere else, not under "gene_biotype": 10475 - 10364 = 111
+
+Confirming number of genes that have the string "pseudogene" everywhere except under "gene_biotype":
+awk -F'\t' '
+$3=="gene" && $0!~/^#/ {
+    has_pseudo = ($0 ~ /pseudogene/)
+    in_biotype = ($9 ~ /gene_biotype "[^"]*pseudogene/)
+    if (has_pseudo && !in_biotype)
+        count++
+}
+END { print count }' material/sex_experiment/gtf_Mus.gtf
+    -> 111 - confirmed
+
+-> The reason for previous mismatch between manual count and command is 
+that in the command for printing the biotypes no tab separator was stated.
+
+Tasks left:
+Finish investigation
+Finish counting protein-coding genes in the annotation and comparing with the table
+Look through the GRIS score script once again
+Rerun region GRIS score with normalization with mean GRIS
+
+26.10.2025
+----------
+
+Tasks for today:
+- Finish mouse annotation investigation - done
+- Check other annotations this way - done
+- Finish counting protein coding genes and comparing with results - done
+- Fix the script for annotation filtering - done
+  - Adjust the proper filtering of pseudogenes
+  - Hadle headers and # properly
+  - Rerun the script
+  - Perform checks for number of genes
+- Investigate the script for bed conversion - done
+- Convert the new results and check number of genes - done
+
+Now since I've counted the number of gene entries directly from the original GTF of Mouse,
+I can count number of non-pseudogenes and compare it with the filtered Mouse GTF.
+
+Number of all gene entries (from 25.10.2025): 50766 
+Number of pseudogene entries (under gene_biotype): 10364
+Expected number of non-pseudogene entries: 50766 - 10364 = 40402
+
+Confirming number of non-pseudogene entries:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt !~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Mus.gtf
+      -> 40402 - confirmed
+
+Now counting the number of genes in filtered Mouse GTF.
+                                    °°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Mus_genes_only.gtf | sort -k2,2nr 
+protein_coding 22100
+lncRNA 13507
+snoRNA 1330
+miRNA 1227
+snRNA 1000
+tRNA 422
+V_segment 374
+misc_RNA 83
+J_segment 82
+rRNA 64
+ncRNA 41
+C_region 20
+D_segment 14
+antisense_RNA 9
+other 7
+RNase_P_RNA 4
+scRNA 3
+Y_RNA 2
+RNase_MRP_RNA 1
+telomerase_RNA 1
+  -> Expected total number of gene entries: 40291
+  -> running the command without the <$3=="gene" && $0!~/^#/> part brought same results, meaning there are no headers and only gene entries
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Mus_genes_only.gtf
+  -> 40291 - confirmed
+  -> the command with <awk -F'\t' '$3=="gene" && $0 !~ /^#/'> brought same results
+
+Comparing number of non-pseudogenes entries from the original Mouse GTF and filtered one:
+  -> Original: 40402
+  -> Filtered: 40291
+  -> Difference: 40402 - 40291 = 111
+
+-> So the filtering script indeed filtered out for Mouse 111 genes that were actual genes
+
+-> Going back to mismatch between GTF and BED file (see 24.10.2025):
+turns out the reason for filtered GTF file having lesser columns is because of missing -F'\t' parameter 
+while counting
+  -> both files contain 40291 genes.
+
+
+Checking other species annotation:
+
+Dog - original annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' material/sex_experiment/gtf_Canis.gtf | sort -k2,2nr 
+protein_coding 21210
+lncRNA 13394
+pseudogene 5411
+snRNA 1237
+tRNA 642
+snoRNA 501
+miRNA 490
+V_segment 189
+misc_RNA 119
+rRNA 81
+transcribed_pseudogene 40
+guide_RNA 24
+C_region 23
+RNase_P_RNA 1
+SRP_RNA 1
+  -> Expected total number of gene entries: 43363
+  -> Expected number of pseudogenes: 5411 + 40 = 5451
+  -> Expected number of non-pseudogenes: 43363 - 5451 = 37912
+
+Confirming the total number of gene entries:
+awk -F'\t' '$3=="gene" && $0 !~ /^#/' material/sex_experiment/gtf_Canis.gtf | wc -l
+    -> 43363 - confirmed
+
+Confirming number of gene entries that have pseudogenes in gene_biotype:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt ~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Canis.gtf
+      -> 5451 - confirmed
+
+Number of gene entries that involve string "pseudogene" anywhere in the rows:
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/' material/sex_experiment/gtf_Canis.gtf | wc -l
+  -> 5451
+  -> Expected number of entries having the string "pseudogene" anywhere else, not under "gene_biotype": 5451 - 5451 = 0 
+
+Confirming number of genes that have the string "pseudogene" everywhere except under "gene_biotype":
+awk -F'\t' '
+BEGIN { count=0 }
+$3=="gene" && $0!~/^#/ {
+    has_pseudo = ($0 ~ /pseudogene/)
+    in_biotype = ($9 ~ /gene_biotype "[^"]*pseudogene/)
+    if (has_pseudo && !in_biotype)
+        count++
+}
+END { print count }' material/sex_experiment/gtf_Canis.gtf
+    -> 0 - confirmed
+
+Confirming number of non-pseudogene entries:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt !~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Canis.gtf
+      -> 37912 - confirmed
+
+Dog - filtered annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Canis_genes_only.gtf | sort -k2,2nr 
+protein_coding 21210
+lncRNA 13394
+snRNA 1237
+tRNA 642
+snoRNA 501
+miRNA 490
+V_segment 189
+misc_RNA 119
+rRNA 81
+guide_RNA 24
+C_region 23
+RNase_P_RNA 1
+SRP_RNA 1
+  -> Expected total number of gene entries: 37912
+  -> running the command without the <$3=="gene" && $0!~/^#/> part brought same results, meaning there are no headers and only gene entries
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Canis_genes_only.gtf
+  -> 37912 - confirmed
+  -> the command with <awk -F'\t' '$3=="gene" && $0 !~ /^#/'> brought same results
+
+Comparing number of non-pseudogenes entries from the original Dog GTF and filtered one:
+  -> Original: 37912
+  -> Filtered: 37912
+  -> Difference: 0
+
+-> the filtered annotation for Dog looks correct
+
+Macaca - original annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' material/sex_experiment/gtf_Macaca.gtf | sort -k2,2nr 
+protein_coding 21813
+lncRNA 7734
+pseudogene 6217
+snRNA 1486
+snoRNA 1111
+tRNA 440
+rRNA 412
+V_segment 122
+misc_RNA 93
+transcribed_pseudogene 69
+ncRNA 43
+C_region 16
+  -> Expected total number of gene entries: 39556
+  -> Expected number of pseudogenes: 6217 + 69 = 6286
+  -> Expected number of non-pseudogenes: 39556 - 6286 = 33270
+
+Confirming the total number of gene entries:
+awk -F'\t' '$3=="gene" && $0 !~ /^#/' material/sex_experiment/gtf_Macaca.gtf | wc -l
+    -> 39556 - confirmed
+
+Confirming number of gene entries that have pseudogenes in gene_biotype:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt ~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Macaca.gtf
+      -> 6286 - confirmed
+
+Number of gene entries that involve string "pseudogene" anywhere in the rows:
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/' material/sex_experiment/gtf_Macaca.gtf | wc -l
+  -> 6286
+  -> Expected number of entries having the string "pseudogene" anywhere else, not under "gene_biotype":  6286 - 6286 = 0
+
+Confirming number of genes that have the string "pseudogene" everywhere except under "gene_biotype":
+awk -F'\t' '
+BEGIN { count=0 }
+$3=="gene" && $0!~/^#/ {
+    has_pseudo = ($0 ~ /pseudogene/)
+    in_biotype = ($9 ~ /gene_biotype "[^"]*pseudogene/)
+    if (has_pseudo && !in_biotype)
+        count++
+}
+END { print count }' material/sex_experiment/gtf_Macaca.gtf
+    -> 0 - confirmed
+
+Confirming number of non-pseudogene entries:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt !~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Macaca.gtf
+      -> 33270 - confirmed
+
+Macaca - filtered annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Macaca_genes_only.gtf | sort -k2,2nr 
+protein_coding 21813
+lncRNA 7734
+snRNA 1486
+snoRNA 1111
+tRNA 440
+rRNA 412
+V_segment 122
+misc_RNA 93
+ncRNA 43
+C_region 16
+  -> Expected total number of gene entries: 33270
+  -> running the command without the <$3=="gene" && $0!~/^#/> part brought same results, meaning there are no headers and only gene entries
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Macaca_genes_only.gtf
+  -> 33270 - confirmed
+  -> the command with <awk -F'\t' '$3=="gene" && $0 !~ /^#/'> brought same results
+
+Comparing number of non-pseudogenes entries from the original Macaca GTF and filtered one:
+  -> Original: 33270
+  -> Filtered: 33270
+  -> Difference: 0
+
+-> the filtered annotation for Macaca looks correct
+
+Rat - original annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' material/sex_experiment/gtf_Rat.gtf | sort -k2,2nr 
+protein_coding 23154
+lncRNA 10879
+pseudogene 8687
+snoRNA 1564
+snRNA 1013
+tRNA 771
+V_segment 491
+miRNA 466
+rRNA 159
+transcribed_pseudogene 117
+ncRNA 34
+misc_RNA 13
+C_region 10
+antisense_RNA 1
+RNase_MRP_RNA 1
+SRP_RNA 1
+telomerase_RNA 1
+  -> Expected total number of gene entries: 47362
+  -> Expected number of pseudogenes: 8687 + 117 = 8804
+  -> Expected number of non-pseudogenes: 47362 - 8804 = 38558
+
+Confirming the total number of gene entries:
+awk -F'\t' '$3=="gene" && $0 !~ /^#/' material/sex_experiment/gtf_Rat.gtf | wc -l
+    -> 47362 - confirmed
+
+Confirming number of gene entries that have pseudogenes in gene_biotype:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt ~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Rat.gtf
+      -> 8804 - confirmed
+
+Number of gene entries that involve string "pseudogene" anywhere in the rows:
+awk -F'\t' '$3=="gene" && $0!~/^#/ && $9 ~ /pseudogene/' material/sex_experiment/gtf_Rat.gtf | wc -l
+  -> 8949
+  -> Expected number of entries having the string "pseudogene" anywhere else, not under "gene_biotype": 8949 - 8804 = 145
+
+Confirming number of genes that have the string "pseudogene" everywhere except under "gene_biotype":
+awk -F'\t' '
+BEGIN { count=0 }
+$3=="gene" && $0!~/^#/ {
+    has_pseudo = ($0 ~ /pseudogene/)
+    in_biotype = ($9 ~ /gene_biotype "[^"]*pseudogene/)
+    if (has_pseudo && !in_biotype)
+        count++
+}
+END { print count }' material/sex_experiment/gtf_Rat.gtf
+    -> 145 - confirmed
+
+Confirming number of non-pseudogene entries:
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt !~ /pseudogene/) c++
+  }
+  END{print c}' material/sex_experiment/gtf_Rat.gtf
+      -> 38558 - confirmed
+
+Rat - filtered annotation:
+°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Rat_genes_only.gtf | sort -k2,2nr 
+protein_coding 23033
+lncRNA 10860
+snoRNA 1564
+snRNA 1013
+tRNA 771
+V_segment 486
+miRNA 466
+rRNA 159
+ncRNA 34
+misc_RNA 13
+C_region 10
+antisense_RNA 1
+RNase_MRP_RNA 1
+SRP_RNA 1
+telomerase_RNA 1
+  -> Expected total number of gene entries: 38413
+  -> running the command without the <$3=="gene" && $0!~/^#/> part brought same results, meaning there are no headers and only gene entries
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Rat_genes_only.gtf
+  -> 38413 - confirmed
+  -> the command with <awk -F'\t' '$3=="gene" && $0 !~ /^#/'> brought same results
+
+Comparing number of non-pseudogenes entries from the original Rat GTF and filtered one:
+  -> Original: 38558
+  -> Filtered: 38413
+  -> Difference: 38558 - 38413 = 145
+
+-> the filtering script discarded for Rat 145 actual entries
+
+Conclusion: need to adjust the script and redo the filtering, then investigate BED conversion, especially in Mouse and Rat
+
+But first finish counting protein-coding genes in the annotations and comparing to the provided table
+
+From 24.10.2015:
+  - Total number of genes in the provided mapping table: 88327
+  - Expected number of genes pro species: 88327 / 4 = ~22000 
+  - For Canis lupus familiaris: 21175 
+  - For Macaca fascicularis: 21813
+  - For Rattus norvegicus: 23154
+  - For Mus musculus: 22185
+
+Number of genes (all types - protein-coding and non-coding) in the annotation: 
+  - For Canis lupus familiaris (BED6 file): 37912
+  - For Macaca fascicularis (BED6 file): 33270 
+  - For Rattus norvegicus (BED6 file): 38413
+  - For Mus musculus (BED6 file): 40291 
+
+Number of protein-coding genes:
+
+- For Canis lupus familiaris:
+    -> original annotation file: 21210
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Canis.gtf | wc -l
+    -> filtered annotation file: 21210
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Canis_genes_only.gtf | wc -l
+    -> in the provided table (see 24.10.2025): 21175 -> 21210 - 21175 = there are 35 genes less in the table
+ 
+- For Macaca fascicularis: 
+    -> original annotation file: 21813
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Macaca.gtf | wc -l
+    -> filtered gene annotation: 21813
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Macaca_genes_only.gtf | wc -l
+    -> in the provided table: 21813, all genes are presented
+
+- For Rattus norvegicus:
+    -> original annotation file: 23154
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Rat.gtf | wc -l
+    -> filtered gene annotation: 23033 (121 genes were filtered out because of pseudogene confusion)
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Rat_genes_only.gtf | wc -l
+    -> in the provided table: 23154, all genes from original annotation are presented  
+
+- For Mus musculus:
+    -> original annotation file: 22198
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Mus.gtf | wc -l
+    -> filtered gene annotation: 22100 (98 genes were filtered out because of pseudogene confusion)
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Mus_genes_only.gtf | wc -l
+    -> in the provided table: 22185 -> 22198 - 22185 = there are 13 genes less in the table
+
+
+Changed the script for filtering of the annotation, so that gene entries that don't have "pseudogene" under "gene_biotype" are kept.
+awk -F'\t' 'BEGIN{IGNORECASE=1}
+  $3=="gene" && $0!~/^#/ {
+    bt="";
+    if (match($0,/gene_biotype "([^"]+)"/,m)) bt=m[1];
+    else if (match($0,/gene_type "([^"]+)"/,m)) bt=m[1];
+    if (bt !~ /pseudogene/)
+      print $0;
+  }' $original_ann > $filtered_ann
+
+-> job 805 was executed for new filtering
+
+
+Checking the numbers once again
+
+
+Dog - new filtered annotation
+=============================
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Canis_genes_only_fix.gtf | sort -k2,2nr
+protein_coding 21210
+lncRNA 13394
+snRNA 1237
+tRNA 642
+snoRNA 501
+miRNA 490
+V_segment 189
+misc_RNA 119
+rRNA 81
+guide_RNA 24
+C_region 23
+RNase_P_RNA 1
+SRP_RNA 1
+  -> Expected total number of gene entries: 37912
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Canis_genes_only_fix.gtf
+  -> 37912 - confirmed
+
+Comparing number of non-pseudogenes entries from the original Dog GTF and new filtered one:
+  -> Original: 37912
+  -> Filtered: 37912
+  -> Difference: 0
+
+-> the new filtered annotation for Dog looks correct
+
+Macaca - new filtered annotation
+================================
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Macaca_genes_only_fix.gtf | sort -k2,2nr 
+protein_coding 21813
+lncRNA 7734
+snRNA 1486
+snoRNA 1111
+tRNA 440
+rRNA 412
+V_segment 122
+misc_RNA 93
+ncRNA 43
+C_region 16
+  -> Expected total number of gene entries: 33270
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Macaca_genes_only_fix.gtf
+  -> 33270 - confirmed
+
+Comparing number of non-pseudogenes entries from the original Macaca GTF and new filtered one:
+  -> Original: 33270
+  -> Filtered: 33270
+  -> Difference: 0
+
+-> the new filtered annotation for Macaca looks correct
+
+Rat - new filtered annotation
+=============================
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Rat_genes_only_fix.gtf | sort -k2,2nr 
+protein_coding 23154
+lncRNA 10879
+snoRNA 1564
+snRNA 1013
+tRNA 771
+V_segment 491
+miRNA 466
+rRNA 159
+ncRNA 34
+misc_RNA 13
+C_region 10
+antisense_RNA 1
+RNase_MRP_RNA 1
+SRP_RNA 1
+telomerase_RNA 1
+  -> Expected total number of gene entries: 38558
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Rat_genes_only_fix.gtf
+  -> 38558 - confirmed
+
+Comparing number of non-pseudogenes entries from the original Rat GTF and new filtered one:
+  -> Original: 38558
+  -> Filtered: 38558
+  -> Difference: 0
+
+-> the new filtered annotation for Rat looks correct
+
+Mouse - new filtered annotation
+===============================
+
+Biotype distribution:
+awk -F'\t' '$3=="gene" && $0!~/^#/ {if(match($9,/gene_biotype "([^"]+)"/,m))counts[m[1]]++} END{for(t in counts)print t,counts[t]}' results/ann_genes/Mus_genes_only_fix.gtf | sort -k2,2nr 
+protein_coding 22198
+lncRNA 13517
+snoRNA 1330
+miRNA 1227
+snRNA 1000
+tRNA 422
+V_segment 374
+misc_RNA 86
+J_segment 82
+rRNA 64
+ncRNA 41
+C_region 20
+D_segment 14
+antisense_RNA 9
+other 7
+RNase_P_RNA 4
+scRNA 3
+Y_RNA 2
+RNase_MRP_RNA 1
+telomerase_RNA 1
+  -> Expected total number of gene entries: 40402
+
+Confirming total number of gene entries:
+wc -l results/ann_genes/Mus_genes_only_fix.gtf
+  -> 40402 - confirmed
+
+Comparing number of non-pseudogenes entries from the original Mouse GTF and new filtered one:
+  -> Original: 40402
+  -> Filtered: 40402
+  -> Difference: 0
+
+-> the new filtered annotation for Mouse looks correct
+
+
+Now checking the number of protein-coding genes in the new filtered annotations and comparing with the table.
+
+- For Canis lupus familiaris:
+    -> original annotation file: 21210
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Canis.gtf | wc -l
+    -> new filtered annotation file: 21210
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Canis_genes_only_fix.gtf | wc -l
+    -> in the provided table: 21175 -> 21210 - 21175 = there are still 35 genes less in the table
+ 
+- For Macaca fascicularis: 
+    -> original annotation file: 21813
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Macaca.gtf | wc -l
+    -> new filtered gene annotation: 21813
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Macaca_genes_only_fix.gtf | wc -l
+    -> in the provided table: 21813, all genes from the annotation are presented in the table
+
+- For Rattus norvegicus:
+    -> original annotation file: 23154
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Rat.gtf | wc -l
+    -> filtered gene annotation: 23154
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Rat_genes_only_fix.gtf | wc -l
+    -> in the provided table: 23154, all genes from the annotation are presented in the table  
+
+- For Mus musculus:
+    -> original annotation file: 22198
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' material/sex_experiment/gtf_Mus.gtf | wc -l
+    -> filtered gene annotation: 22198
+awk '$3=="gene" && $0!~/^#/ && $0~/gene_biotype "protein_coding"/' results/ann_genes/Mus_genes_only_fix.gtf | wc -l
+    -> in the provided table: 22185 -> 22198 - 22185 = there are still 13 genes less in the table
+
+
+Edited the script for conversion of GTF to BED (gene_relationship_classifier/methods/gtf_to_bed.sh) according to the new annotations
+
+-> job 806 was executed for gtf->bed conversion
+
+Edited the script for creation of a map genename-geneID
+
+-> jobs 807-811 were executed for map gene_name-geneID creation
+
+Checked and edited the script for mapping gene name- gene ID.
+-> job 812 
+
+All new annotation involved files end with _fix
+
+
+Checks of the new final BED files:
+
+Number of genes (all types - protein-coding and non-coding) in the annotation: 
+
+  - For Canis lupus familiaris (new gene-only GTF file): 37912
+  - For Canis lupus familiaris (new BED6 file): 37912 - corresponds
+  wc -l results/ann_genes/Canis_genes_only_stableid_fix.bed6
+
+  - For Macaca fascicularis (new gene-only GTF file): 33270
+  - For Macaca fascicularis (new BED6 file): 33270 - corresponds  
+  wc -l results/ann_genes/Macaca_genes_only_stableid_fix.bed6
+
+  - For Rattus norvegicus (new gene-only GTF file): 38558
+  - For Rattus norvegicus (new BED6 file): 38558
+  wc -l results/ann_genes/Rat_genes_only_stableid_fix.bed6
+
+  - For Mus musculus (GTF file): 40402
+  - For Mus musculus (BED6 file): 40402 
+  wc -l results/ann_genes/Mus_genes_only_stableid_fix.bed6
+ 
+ -> Fixing of the annotations done successfully
+
+
+ Summary about number of protein-coding genes in table vs annotation:
+
+- For Canis lupus familiaris:
+    -> original annotation file: 21210
+    -> new filtered annotation file: 21210
+    -> in the provided table: 21175 -> 21210 - 21175 = there are 35 genes less in the table
+ 
+- For Macaca fascicularis: 
+    -> original annotation file: 21813
+    -> new filtered gene annotation: 21813
+    -> in the provided table: 21813, all genes from the annotation are presented in the table
+
+- For Rattus norvegicus:
+    -> original annotation file: 23154
+    -> filtered gene annotation: 23154
+    -> in the provided table: 23154, all genes from the annotation are presented in the table  
+
+- For Mus musculus:
+    -> original annotation file: 22198
+    -> filtered gene annotation: 22198
+    -> in the provided table: 22185 -> 22198 - 22185 = there are 13 genes less in the table
+
+
+  -> Canis: 35 protein-only genes from the annotation are missing in the table
+  -> Macaca: all protein-only genes from the annotation are in the table
+  -> Rat: all protein-only genes from the annotation are in the table
+  -> Mus: 13 protein-only genes from the annotation are missing in the table
+
+
+27.10.2025
+----------
+
+Tasks for today:
+- Rerun and check gene identification in synteny blocks - done
+- Rerun and check final mapped tables
+- Rerun and check plots
+- Look if there are any assymetrical synteny blocks and handle them
+
+
+Adjustments for the script for gene identification in synteny blocks (find_genes_in_blocks.sh):
+- The script is now printing the number of blocks with no genes
+- Doesnt rerun bedtrools intersect once again with reverse imput for coverage calculation, since it can be obtained from the first one
+- No summary file is created, the statistical information is printed in job output itself
+-> job 813
+-> statistics are in slurm_outputs/find_genes_in_blocks813.out
+
+Some interesting points from statistics:
+- There are blocks that have 0 genes both in query and target species
+- The numbers ob such blocks differ between query and target
+  -> that means there are asymetrical blocks, that either have only query genes or only target
+
+
+Adjustments for region and gene tables script:
+- renamed the script from "restructure_tables.sh" to "create_region_and_gene_tables.sh"
+- Fixed counting of regions that have at least one gene from both species
+  -> previously it just counted duplicated entries under each block_id, 
+  but each block can have multiple genes from the same species,
+  so it inflates the numbers incorrectly
+  -> now it extracts unique (Region, Species) pairs,
+  counts how many unique species per region,
+  and keeps only regions that have both
+- Added counts of asymmetric regions (those that have either genes only in query or only in target)
+- Added counts of regions with no genes for both query and target
+- Replaced names of the species in the tables to their full names
+- Rerun the script
+  -> jobs 814-817
+  -> the statistics are in slurm_outputs/create_region_and_gene_tables817.out
+
+Some observations from the statistics:
+- Number of synteny blocks from the region table and number of synteny blocks from bedtools intersect result don't match
+- There are also lesser genes
+-> need to investigate further
+
+
+28.10.2025 
+----------
+
+Tasks for today:
+- Identify cause of asymetrical blocks - done
+- Redo region and gene tables, check the results - done
+- redo and check plots - done
+- Redo and check GRIS score
+- Exctract reciprocal pairs
+- Ensure reciprocity
+
+
+Identifiying the issue with asymmetrical blocks:
+
+Analyzed the script that splits halSynteny raw output into query and target and saves the files as BED (psl_to_bed.sh):
+  - Turns out there is an issue with numeration:
+    in the original script there were those lines:
+    awk '{print $10, $12, $13, "block_"NR}' > query.bed
+    awk '{print $14, $16, $17, "block_"NR}' > target.bed
+        -> these two awk commands run independently, one after each other
+        -> each awk command starts its own count
+        -> later indenpendent merging or filtering of the two files, leads to discarding of some for example query blocks, but keeping them in target
+  - Attempt to fix:
+    awk -v bed_all="$bed_output_all" \
+        -v bed_query="$bed_output_query" \
+        -v bed_target="$bed_output_target" \
+    'BEGIN { OFS="\t" }
+     {
+         block_id = "block_" NR
+         # full table
+         print block_id, $10, $12, $13, $14, $16, $17 > bed_all
+         # query and target sides
+         print $10, $12, $13, block_id > bed_query
+         print $14, $16, $17, block_id > bed_target
+     }' "$psl_input"
+        -> everything is under one awk
+        -> both query and target are filling out simultaneously
+        -> shouldnt be mismatches by joining
+        -> checks showed matching number of synteny blocks in query and target
+-> jobs 818, 819
+-> statistics are at slurm_outputs/psl_to_bed819.out
+
+Adjusted the script for checking block length:
+- now it creates only one file with length of query and target blocks; with header
+- And it prints corrected summary
+-> jobs 820-822, 824 and 825, statistics are at slurm_outputs/block_length825.out
+-> far species show a bit more difference in number of blocks between forward and reverse
+for example can-rat vs rat-can: 1457 vs 1464
+  -> but 0 blocks difference between mac-rat and rat-mac
+
+
+Rerun bedtools intersect with new synteny block files
+- job 823, statistics are at slurm_outputs/find_genes_in_blocks823.out
+- Number of blocks correspond to statistics from slurm_outputs/block_length825.out
+
+
+Adjusted the script that creates regions and genes tables:
+- Previously it was obtaining information from bedtools intersect output for region tables,
+creating table with only those regions that have at least one gene
+- Now it takes the region information from halSynteny BED files for overview
+  -> there are some regions with 0 genes, but they wont disturb ortholog analyses since they just wont show up during mappings
+- jobs 826-828, statistics are in slurm_outputs/create_region_and_gene_tables828.out
+
+
+Checking the plots
+-> results are similar to previous ones since no biological content was changed
+
+
+
+29.10.2025
+----------
+
+Task assigned on the meeting:
+- Finish final checks on the pipeline
+- Finish plots
+- Evaluate results
+- Literature research
+
+
+
+1.11.2025
+---------
+
+Tasks for today:
+- Finish cactus pipeline checks - done
+- Circos plots
+- Rerun halSynteny plots 
+- Start readme and Filling out missing labbook information
+
+
+
+Statistics of the results are in following slurm output files in slurm_outputs/:
+- reciprocity855.out
+- check_one_to_one856.out
+- check_in_paralogs857.out
+- gene_classification859.out
+
+
+Circos plots - planned workflow:
+1. Convert halSynteny BED files (containing all - query and target) to Circos links format:
+- just remove block_id column and save as .links format
+2. Obtain from .fai (in material/sex_experiment/nucleotids/) chromosome lengths:
+- extract first two columns chr and length
+3. Convert the .sizes.txt files to karyotype.txt 
+4. Create a .conf file that will contain all information needed for Circos to create a plot
+5. Install Circos to a separate mamba environment
+6. Execute Circos with the .conf file
+
+
+2.11.2025
+---------
+
+Tasks for today:
+- Circos plots
+- halSynteny plots
+- Start with evaluation
+
+Circos plots:
+
+- created directory results/circos_plots/ for all files
+- prepared .links and .karyotype files (script prepare_circos_files.sh)
+  -> job 860
+
+- Installed Circos:
+eval "$(/storage/EasyVectorOmics/busco/miniconda3/bin/conda shell.bash hook)"
+eval "$(mamba shell hook --shell bash)"
+mamba create -n circos-env -c conda-forge
+mamba activate circos-env
+mamba install -c bioconda circos
+circos --version
+
+-> Version: circos | v 0.69-8 | 15 Jun 2019 | Perl 5.026002
+
+- Created .conf files (in results/circos_plots/)
+- Script for running circos (make sure to start the env): circos_plots.sh
+  -> Job 861, got error of missing tools. Reinstalled with 
+  mamba install -c conda-forge -c bioconda circos-tools
+  
+  -> Rerun with job 862 - Still got error of missing ideogram.conf. removed that since i define it in the config file. also removed <<include etc/ticks.conf>>
+  -> Rerun with job 863 - Error of title conf does not exist. removed it 
+  -> Rerun with job 864 - Color wasnt found, tried at first with color=red instead of spectral-7-div
+  -> Rerun with job 865 - same error. 
+  -> Rerun with job 866 with full paths to include - 
+
+mamba install -c conda-forge font-ttf-dejavu-sans-mono
+
+Copied all system .confs to the directory since its required by Circos
+cp "$CONDA_PREFIX/etc/housekeeping.conf" results/circos_plots/
+
+There are still issues with finding the files. Need to look tomorrow
+
+
+3.11.2025
+---------
+
+Tasks for today:
+- Find the script for evaluation, adjust if needed for the new cactus set and the results
+- For now i have neighborhood results, PTP, tree results. OrthoFinder results need to be found and prepared
+- Evaluate cactus vs neighborhood
+- Evaluate cactus vs PTP
+- Evaluate cactus vs Tree algorithm
+
+
+(- Document results:
+  - Build tables for each metric
+  - Visualize with heatmap) - will be done tomorrow
+
+Evaluation script was rewrote to have functional approach for easy comparison
+
+Evaluation results are in corresponding slurm output files:
+ - vs nbh - job 891 (gm), job 910 (sum)
+ - vs tree-majority - job 892
+ - vs tree-standard - job 893 
+ - vs tree-whitelist - job 894  
+ - vs ptp - job 896
+
+ -> the recall of cactus vs PhyloTreePruner is loo low (0.316) - needs further investigation
+
+What was done (3.11): Adjusted evaluation script; evaluated cactus vs neighborhood, tree and PhyloTreePruner algorithm
+ Where: evaluation script is at gene_relationship_classifier repository in methods/, evaluation results are on Bioserver under /storage/EasyVectorOmics/cactus/results/evaluation/
+ Time: 4 hours
+ Problems: low recall of cactus vs PTP (0.316) - needs further investigation
+ Next steps: find, prepare and evaluate OrthoFinder results; prepare metrics tables; finish Circos plots; Work on issue #5 about theoretical part
+
+4.11.2025
+---------
+
+Tasks for today:
+- Finish circos plots - done
+- Look arabidopsis input data - done
+- Run halSynteny for arabidopsis vs cardamine (ar-card) and reverse - done
+- Prepare tables for the results I have - postponed
+- Investigate low recall for PTP: - postponed
+  - Check 1:1 pairs with the checking script
+  - Check missing pairs, if they are truly missing 
+
+
+Circos plots:
+- The Circos program doesnt work, will try to find another 
+- Found circa.omgenomics.com 
+- Adjusted script that creates input for Circa
+  -> see prepare_circa_files.sh
+  -> see all files in results/circos_plots/circa/
+- Extracted only chromosomes starting with NC_ and filtered blocks that are longer than 1MB for better readability
+- For Circa files _setup and _ribbons are needed
+- Setup contains chr lengths and ribbons contains synteny information
+- During the uploading of chr length tick Ignore small segments (<0.5% of total size) was chosen
+- Plots are in circa/plots and at plots/ in repo
+- For now without headers since I havent found this option on the website, headers will be added later
+
+
+halSynteny:
+- Annotation files were downloaded:
+  - For arabidopsis: https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants/release-62/gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.62.gff3.gz
+    - File was unzipped with `gunzip filename` and renamed from Arabidopsis_thaliana.TAIR10.62.gff3 to Arabidopsis.gff3 
+  - For cardamine: https://chi.mpipz.mpg.de/download/annotations/carhr38.gff
+    - File was renamed from carhr38.gff to Cardamine.gff
+  - The files were uploaded to the server and are under material/cardamine/
+- The script was rewritten so that it has functional approach
+- Calculation the parameters for halSynteny for ar-card:
+  - See issue #3
+  - maxAnchorDistance = 90th percentile of intergenic distances
+  - minBlockSize = 0.5 * maxAnchorDistance
+  - Calculating 90th percentile of intergenic distances:
+    - see script get_halsynteny_parameters_cardamine.sh and slurm_outputs/get_parameters906.out
+    - For ar: minBlockSize = 2144, maxAnchorDistance = 4289 
+    - For card: minBlockSize = 4741, maxAnchorDistance = 9483 
+- The script is executed (job 907)
+
+
+What is left:
+- PTP results check and investigation
+- OrthoFinder evaluation
+- Prepare metric tables and visualization
+- Theory issue 
+
+
+What was done (4.11): finished circos plots; calculation of halsynteny parameters for plants; run halsynteny for plants
+Where: scripts are at gene_relationship_classifier repository in methods/, plots are at /plots , parameters are in process_hal.sh , results are on bioserver /storage/EasyVectorOmics/cactus/results/
+Time: 5 hours
+Next steps: investigate reason of low recall for PTP, evaluate orthofinder
+
+
+5.11.2025
+---------
+
+Meeting notes: run cactus pipeline for Drosophila as well
+
+Tasks for today:
+- Investigate low recall for PTP: - done
+  - Check 1:1 pairs with the checking script
+  - Check missing pairs, if they are truly missing 
+  - Find out further checks on PTP data
+
+Checking of PTP files:
+
+Check raw output after running PTP: /storage/EasyVectorOmics/phylotreepruner/methods/check_ptp_raw_output.sh
+-> job 918 (/storage/EasyVectorOmics/phylotreepruner/slurm_outputs/)
+Total orthogroups: 13302 
+Full 1:1:1:1 groups: 12842 (96.5%) 
+Counts by number of species per group: 
+0 species: 202 
+3 species: 258 
+4 species: 12842
+-> 96.5 % of the orthogroups are truly 1:1:1:1, which means the raw PTP results are structurally correct
+
+Adjust the script for 1:1 pairs extraction so that only full 4-species orthogroups are kept
+-> extract_one_to_one.py
+-> job 921 (/storage/EasyVectorOmics/phylotreepruner/slurm_outputs/)
+
+Renamed slurm output directory and moved to the phylotreepruner/ from methods/
+Also renamed the paths to slurm direcory in the scripts
+
+Rerun evaluation for PTP (new files are with _new.tsv):
+-> job 924 (/storage/EasyVectorOmics/cactus/slurm_outputs/)
+Recall: 0.624
+Precision: 0.861
+-> better results 
+
+What happened: Originally the script didnt check whether each pruned FASTA file (orthogroup) was a complete 1:1:1:1 set (one sequence per species).
+Orthogroups with missing species (e.g. only 2 or 3 species present) were still included.
+When those groups were expanded into all pairwise combinations, the same proteins appeared in several different orthogroups or species links 
+-> many-to-many mappings rather than true one-to-one.
+-> So the first PTP 1:1 file wasn’t really 1:1:1:1 - it was a mix of 1:1, 1:many, and many:many relationships
+
+
+For tomorrow: think of how to implement evaluation for OrthoFinder; psl to bed for plants and flies; look at the data
+
+What was done (5.11): investigated low recall for PTP: implemented script thats checking raw PTP data; fixed the script for 1:1 pairs; rerun evaluation
+Where: Scripts are at gene_relationship_classifier repository in methods/, results are on bioserver /storage/EasyVectorOmics/cactus/results/evaluation/vs_ptp/<file>_new.tsv
+Time: 5 hours
+Next steps: OrthoFinder evaluation; convert PSL to BED for plants and drosophila and check the block length data
+
+
+
+
+7.11.2015
+---------
+
+Tasks for today:
+- convert PSL to BED for plants and check block length - done
+
+
+Moved drosophila halsynteny results from results/halsynteny_output/old_results/ 
+
+Renamed file synteny.psl to dmel_dsec_synteny.psl
+
+Created directories in results/halsynteny_output/ for each species groups:
+- cardamine
+- mammalia
+- drosophila
+-> each directory has bed/ with converted PSL files to BED
+
+Adjusted psl_to_bed.sh script for plants PSL input:
+- job 925
+- Number of blocks in ar-card: 11232
+- Number of blocks in card-ar: 4777
+- large difference between forward and reverse - needs further look
+
+Adjusted data_check/block_length.sh for plants BED input:
+- job 927
+- Confirmed large difference between forward and reverse (maybe because large difference in parameters for halsynteny?)
+
+-> need to research is this is the case in plants
+
+What is also left:
+- Calculate parameters for drosophila
+- Run halSynteny with new parameteres for drosophila
+- convert PSL to BED for drosophila and check block length 
+- compare to results with default params
+
+
+8.11.2025
+---------
+
+Tasks for today: 
+- Calculate parameters for drosophila - done
+- Run halSynteny with new parameteres for drosophila - done
+- Investigate assymetry in plants block number forward and reverse - done
+
+
+In results/halsynteny_output/ cardamine/ directory was renamed to plants/
+
+
+Reminder halsynteny Parameters for plants (see 5.11.2025):
+- For ar: minBlockSize = 2144, maxAnchorDistance = 4289 
+- For card: minBlockSize = 4741, maxAnchorDistance = 9483 
+-> large difference in gene density, thats why it was expected that there will be different number in blocks
+-> need to rerun with balanced parameters, will try for both forward and reverse minBlockSize=4000 and maxanchordistance=9000
+
+For drosophila:
+- script for parameter calculation was adjusted for drosophila files
+- job 928
+- dmel: minBlockSize = 4645, maxAnchorDistance = 9290 
+- dsec: minBlockSize = 5817, maxAnchorDistance = 11635
+- dsim: minBlockSize = 5067, maxAnchorDistance = 10134
+-> no large differences in the gene density, so will run halsynteny with those parameters
+
+Adjusted script for halsynteny process_hal based on new parameters for flies and plants:
+- new parameter PSL for plants are _balanced.psl
+- new parameter PSL for flies are _new.psl 
+- job 929
+
+
+Next steps: 
+- convert PSL to BED for drosophila and plants and check block length 
+- compare to results with default params for drosophila and results with old params for plants
+- Start with orthofinder!!
+- Start with literature research!!
+
+
+9.11.2025
+---------
+
+Tasks for today:
+- convert PSL to BED for drosophila and plants and check block length - done
+- compare to results with default params for drosophila and results with old params for plants - done
+
+
+halsynteny for plants and drosophila is ready, no error logs
+
+Run psl_to_bed.sh for the new data:
+- job 930
+-> plants look symmetric
+
+Run block_length.sh for the new data:
+-> job 931
+- ar-card: 5648 blocks 
+  card-ar: 5742 blocks 
+- dmel-dsec: 413 blocks
+  dsec-dmel: 310 blocks
+- dmel-dsim: 251 blocks
+  dsim-dmel: 209 blocks
+- dsec-dsim: 448 blocks
+  dsim-dsec: 486 blocks
+-> for now it looks good, there is a mild asymmetry, but not so large. can proceed with those results and will see during mapping
+
+Next steps:
+- Start with orthofinder!!
+- Start with literature research!!
+- bedtools intersect for drosophila and plants 
+
+
+10.11.2025
+----------
+
+Tasks for today: 
+Evaluate orthofinder - done
+
+OrthoFinder evaluation:
+
+- orthofinder results are at /storage/EasyVectorOmics/FastQ_GSE125483_JK/proteom/OrthoFinder/Results_Aug15/Orthologous/
+- at first i evaluate 1:1 orthologs from OF directly, to see recall
+- I need to extract 1:1 orthologs from the tables, idea: one protein per species -> take it
+- created new directory results/evaluation/vs_orthofinder/ where the OF 1:1 pairs are saved and evaluation info will be stored
+- script extract_one_to_one_orthofinder.sh 
+  -> job 933
+- resulting table with all 1:1 orthologs: results/evaluation/vs_orthofinder/orthofinder_1to1.tsv 
+- script for evaluation was adjusted for orthofinder input:
+  -> job 934
+  -> Recall: 0.753
+     Precision: 0.905
+
+
+Next steps:
+- Start with literature research!!
+- bedtools intersect for drosophila and plants 
+
+
+11.11.2025
+----------
+
+Tasks for today:
+- Work on Issue #6 for orthologs (mammals) - done
+- Work on Issue #4 (plots using updated gene and region tables) - done
+- Start with literature research (issue #5) - postponed
+- weekly report - done
+
+Issue #6:
+I need to prepare matrix of metrics.
+-> the problem: for now i only have evaluation of cactus vs all
+- The metrics against each other are missing, need to finish
+- for now visualisation of cactus vs all:
+  - script visualize_evaluation.sh
+  - The heatmap is in results/evaluation/metrics_vs_cactus_only.png
+
+
+Issue #4:
+- I have updated tables of genes and regions, that comes from fixed genome annotations
+- Need to redo the plots, so that they could be used in final reports
+- scripts are in data_check:
+  - plot_genes_per_block.py
+  - plot_total_number_genes.py -> job 939
+  - plot_region_conservativeness.py -> job 937
+  - plot_total_coverage.py -> job 938
+- Need to adjust the paths in the scripts for the new data
+  -> all files related to new fixed tables have suffix _fix
+- There are some mild differences between the old plots and new ones
+- But there is also a empty output in total_number_genes - needs to be investigated
+
+
+What was done (10.11 and 11.11): Evaluated OrthoFinder vs Cactus; Worked on issue #6 in gene_relationship_classifier repo: Visualized the metrics of evaluation of the algorithms against Cactus; Worked on issue #4: redid the plots using new gene and region tables after the annotation was fixed
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/.  The evaluation results are on the server under /storage/EasyVectorOmics/cactus/results/evaluation/
+Time: 9 hours
+Problems: empty output in plots of ratio of total number of genes and genes located in synteny blocks - need to investigate further
+Next steps: Fix the problem and finish the issue #4, evaluate and visualize metrics against each other 
+
+
+12.11.2025
+----------
+
+Meeting notes:
+- Run OrthoFinder,  Tree algorithm, synteny neighborhood algorithm and PTP for plants and drosophila. And then do the same evaluation as for mammals
+- Evaluate algorithms against cactus + BUSCO
+- Evaluate the algorithms against each other, but in this case only look at Jaccard similarity, since this metric doesn't require one method to be a refrerence
+- As a visualization create two types of heatmaps:
+  - First type will have 2 columns: cactus pure and cactus + busco. The rows will be other methods. So it will show performance against the reference sets. Such heatmaps will be created for all 4 metrics
+  - Second heatmap will have a square upper triangle of all methods vs all, but only for jaccard similarity
+
+
+Tasks for today:
+- Write comment to issue #6 - done
+- Finish issue #4 - postponed
+- Prepare cactus+BUSCO set (Cactus+) - postponed
+- Evaluate Cactus+ against all - postponed
+- Look for alternatives for circos plots - postponed
+
+Working on issue #4:
+- checking total number genes script:
+  - replaced "labels" to "tick_labels" for boxplot, since its deprecated
+  - the fixed versions of tables contain full names of species, functions were changed, so that for example for Canis lupus familiaris only for "can" is searched but not compared
+  - script was rerun (job 941)
+  - need to check results
+  - also check other plots for names match
+
+
+14.11.2025
+----------
+
+Tasks for today: 
+- Prepare cactus+BUSCO set (BC-set) - done
+- Evaluate BC-set against all and plot as heatmap - done
+- Evaluate all methods vs all (Jaccard similarity only) and plot as heatmap - postponed
+- Look for alternatives for circos plots - postponed
+- Finish issue #4 - postponed
+
+
+Preparing BC-set:
+- Checking the script that evaluates Cactus vs BUSCO+compleasm (B-set) and creates a union set of agreement (BC-set) 
+- Rewritten script so that it has functional approach and also appliable for almost every input; and adjusted for new input
+- new script at gene_relationship_classifier/methods/compare_cactus_b_set.py 
+- job 946
+- results of cactus vs B-set (metrics and BC-set are saved in results/evaluation/vs_b_set/):
+  - Pairs in ref_set: 50760
+  - Pairs in second_set: 106259
+  - TP: 35651, FN: 15109, FP: 70608
+  - Recall: 0.702
+  - Precision: 0.336
+  - F1 Score: 0.454
+  - Jaccard Similarity: 0.294
+  - Recovered 70.2% of ref 1:1 orthologs (35651 out of 50760)
+
+
+
+Evaluation all vs BC-set:
+- script: evaluate_bc_set.py 
+- results are in results/evaluation/all_vs_bc_set/
+- Neighborhood (gm) vs BC-set (job 950):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 106439
+  - TP: 92091, FN: 29277, FP: 14348
+  - Recall: 0.759
+  - Precision: 0.865
+  - F1 Score: 0.809
+  - Jaccard Similarity: 0.679
+  - Recovered 75.9% of ref 1:1 orthologs (92091 out of 121368)
+    -> a bit lower then pure cactus vs nbh (85.7%), but its expected since we added B-set pairs here
+- Neighborhood (sum) vs BC-set (job 951):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 106287
+  - TP: 91617, FN: 29751, FP: 14670
+  - Recall: 0.755
+  - Precision: 0.862
+  - F1 Score: 0.805
+  - Jaccard Similarity: 0.673
+  - Recovered 75.5% of ref 1:1 orthologs (91617 out of 121368)
+    -> vs pure cactus - 85.4%
+- Tree (majority) vs BC_set (job 952):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 93141
+  - TP: 77692, FN: 43676, FP: 15449
+  - Recall: 0.640
+  - Precision: 0.834
+  - F1 Score: 0.724
+  - Jaccard Similarity: 0.568
+  - Recovered 64.0% of ref 1:1 orthologs (77692 out of 121368)
+    -> vs pure cactus - 72.0% 
+- Tree (standard) vs BC-set (job 953):    
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 93141
+  - TP: 78004, FN: 43364, FP: 15137
+  - Recall: 0.643
+  - Precision: 0.837
+  - F1 Score: 0.727
+  - Jaccard Similarity: 0.571
+  - Recovered 64.3% of ref 1:1 orthologs (78004 out of 121368)
+    -> vs pure cactus - 72.3%
+- Tree (whitelist) vs BC-set (job 954):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 93141
+  - TP: 78004, FN: 43364, FP: 15137
+  - Recall: 0.643
+  - Precision: 0.837
+  - F1 Score: 0.727
+  - Jaccard Similarity: 0.571
+  - Recovered 64.3% of ref 1:1 orthologs (78004 out of 121368)
+    -> vs pure cactus - 72.3%
+- PTP vs BC-set (job 955):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 77052
+  - TP: 67312, FN: 54056, FP: 9740
+  - Recall: 0.555
+  - Precision: 0.874
+  - F1 Score: 0.678
+  - Jaccard Similarity: 0.513
+  - Recovered 55.5% of ref 1:1 orthologs (67312 out of 121368)
+    -> vs pure cactus - 62.4%
+- OrthoFinder vs BC-set (job 956):
+  - Pairs in ref_set: 121368
+  - Pairs in second_set: 88374
+  - TP: 81222, FN: 40146, FP: 7152
+  - Recall: 0.669
+  - Precision: 0.919
+  - F1 Score: 0.774
+  - Jaccard Similarity: 0.632
+  - Recovered 66.9% of ref 1:1 orthologs (81222 out of 121368)
+    -> vs pure cactus - 75.3%
+
+- Heatmaps: all vs Cactus, all vs BC and Combined for Cactus and BC (results/evaluation/)
+
+
+Had to rerun cactus vs nbh gm, sum and vs tree majority because it was accidentaly overwritten
+
+
+17.11.2025
+----------
+
+Tasks for today:
+- Evaluate all methods vs all (Jaccard similarity only) and plot as heatmap - done
+- create gene-only annotation files for plants and drosophila - done
+
+
+Implementing all methods vs each other (Jaccard similarity only):
+- script evaluate_all_vs_all.sh (job 984)
+- heatmap is in results/evaluation/all_vs_all_jaccard_heatmap.png
+
+
+Creating gene-only annotation files:
+- script filter_ann.sh was adjusted for the new input
+- job 986
+- results are in results/ann_genes/*_genes_only.gtf
+
+Checking gene-only annotation files (for commands see 24-26.10.2025):
+- Cardamine:
+  - Number of gene entries in whole annotation: 29458
+  - Number of pseudogene entries in whole annotation: 0
+  - Number of entries in gene-only annotation (expected 29458): 29458
+  - Number of pseudogene entries in gene-only annotation (expected 0): 0
+- Arabidopsis:
+  - Number of gene entries in whole annotation: 27655
+  - Number of pseudogene entries in whole annotation: 0
+  - Number of entries in gene-only annotation (expected 27655): 27655
+  - Number of pseudogene entries in gene-only annotation (expected 0): 0
+- dmel:
+  - Number of gene entries in whole annotation: 17872
+  - Number of pseudogene entries in whole annotation: 365
+  - Number of entries in gene-only annotation (expected 17872): 17872
+  - Number of pseudogene entries in gene-only annotation (expected 0): 0
+- dsec:
+  - Number of gene entries in whole annotation: 17273
+  - Number of pseudogene entries in whole annotation: 15
+  - Number of entries in gene-only annotation (expected 17273): 17273
+  - Number of pseudogene entries in gene-only annotation (expected 0): 0
+- dsim:
+  - Number of gene entries in whole annotation: 15385
+  - Number of pseudogene entries in whole annotation: 187
+  - Number of entries in gene-only annotation (expected 15385): 15385
+  - Number of pseudogene entries in gene-only annotation (expected 0):  0
+
+
+
+18.11.2025
+----------
+
+Tasks for today:
+- convert annotations to bed for plants and drosophila - done
+- bedtools intersect for drosophila and plants - done
+- create region and gene tables for drosophila and plants - done
+
+
+
+
+GTF -> BED conversion:
+- renamed script gtf_to_bed.sh to gtf_to_bed_mammals.sh
+- new script for plants and drosophila, with pure bash based approach, no need for bedops-env: gtf_to_bed.sh
+- job 989
+- results are at results/ann_genes/*.bed6
+
+Checking BED files:
+- Cardamine:
+  - Number of entries in gene-only annotation: 29458
+  - Number of entries in BED6 file: 29458
+- Arabidopsis:
+  - Number of gene entries in gene-only annotation: 27655
+  - Number of entries in BED6 file: 27655
+- dmel:
+  - Number of entries in gene-only annotation: 17872
+  - Number of entries in BED6 file: 17872
+- dsec:
+  - Number of entries in gene-only annotation: 17273
+  - Number of entries in BED6 file: 17273
+- dsim:
+  - Number of entries in gene-only annotation: 15385
+  - Number of entries in BED6 file: 15385
+
+
+Renamed final_output/ to region_gene_tables
+
+Created directories for mammals, plants and drosophila at results/genes_in_blocks/
+
+bedtools intersect:
+- the script find_genes_in_blocks.sh is adjusted based on new input
+- job 990 
+- results are in results/genes_in_blocks/
+
+Creating region and gene tables:
+- the script create_region_and_gene_tables.sh is adjusted based on new input
+- job 991
+- results are in results/genes_in_blocks/<species>/region_gene_tables/
+
+
+19.11.2025
+----------
+
+Meeting notes:
+- Merge request!
+- Meeting on Friday
+- Finish all evaluations and plots
+- finish theory and readme
+
+
+Tasks for today:
+- Finish issue #4 - done
+- Merge request - done
+- Cactus:
+  - plot distribution for drosophila and plants
+
+
+  
+Issue #4:
+- checked total gene number, no empty results anymore
+- checking coverage, if there is an issue with the species names as well:
+  - no species names are used, thats why no issue expected, the plots look fine
+- checking conservativeness plots:
+  - there are slightly larger changes with the fixed tables, the overlap is >98%
+  - but its expected
+- all new plots have _fix suffices in the file names.
+- restructured the directories in plot/ in the repo, so that we have mammals/, plants/ and drosophila/
+- pushed the new plots, deleted old ones from repo
+
+
+Created merge request
+
+
+Placed all plots in results/data_check/ into species type directories
+
+
+Plotting distribution for drosophila and plants:
+- The scripts are adjusted for new input
+- run plot_genes_per_block.py (job 995)
+  -> statistics are at plot_genes_per_block995.out
+  -> plots are in results/data_check/<species_type>/gene_distribution_in_blocks/
+  -> plots look fine
+- finish other plots  
+
+
+What was done (19.11): finished issue #4 for mammals; reorganized scripts and results; created merge request
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/.  The results are on the server under /storage/EasyVectorOmics/cactus/results/
+Time: 6 hours
+Next steps: Finish cactus for drosophila and plants, evaluate vs synteny algorithm
+
+
+20.11.2025
+----------
+
+Tasks for today:
+- plot distribution for drosophila and plants
+
+Restructured results/ann_genes/ so that each type has its own directory
+
+Plotting distribution for drosophila and plants:
+- renamed for now the previous mammals only script for total number genes with _mammals and created new one for the plants and flies
+- job 997
+- no such file or directory issue
+
+
+21.11.2025
+----------
+
+Tasks for today:
+- calculate region GRIS - done
+- reciprocity - done
+
+
+Calculate region GRIS for Drosophila and plants:
+- Adjusted funtion of reading diamond file, so that it adds header, because there is none
+- Adjusted map function extraction for the case that the column order of GeneId and PRoteinId is differnt. it swap the places
+- For now the script calculate_region_gris.py has approach, where you need to uncomment needed lines for the species; will be changed later
+  - Uncomment input and in extract_from_map() function
+- Identified inconsistance between IDs in drosophila, the conversion from GTF to BED led to changing the IDs, so their preffix FBgn was replaced with gene_, need to rerun the pipeline starting from the gtf_to_bed.sh
+
+
+New GTF-BED:
+- gtf_to_bed.sh
+- separated extraction in two functions, one is for drosophila and another for plants
+- job 1008
+
+New find_genes_in_block:
+- job 1009
+- statistics are at slurm_outputs/find_genes_in_blocks1009.out
+
+New region and gene tables:
+- job 1010
+- statistics are at slurm_outputs/create_region_and_gene_tables1010.out 
+
+Continuing with GRIS:
+- once again, for plants and drosophila
+- plants: job 1012, statistics are at slurm_outputs/calculate_region_gris1012.out 
+- drosophila: it worked! job 1013, statistics at slurm_outputs/calculate_region_gris1013.out 
+
+
+Reciprocity:
+- Adjusted the script reciprocity.py based on new input
+- Adjusted the functions from map extraction and diamond extraction similar to gris script
+- As well, need to uncomment for each input, input path in the function extract_from_map()
+- Plants: job 1014, slurm_outputs/reciprocity1014.out
+- Drosophila: job 1017, slurm_outputs/reciprocity1017.out
+
+
+
+Check 1:1:
+- script data_check/check_one_to_one.py
+- Adjusted for new paths
+- Plants: job 1016, slurm_outputs/check_one_to_one1016.out, all are 1:1
+- Drosophila: job 1018, slurm_outputs/check_one_to_one1018.out, all are 1:1
+
+
+Check in-paralogs:
+- script data_check/check_in_paralogs.sh
+- Adjusted for new paths
+- Plants: job 1019, slurm_outputs/check_in_paralogs1019.out 
+- Drosophila: job 1020, slurm_outputs/check_in_paralogs1020.out
+
+
+Evaluation:
+- Created directories in results/evaluation for plants and drosophila
+- Adjusted the script evaluation.py
+- Plants vs nbh global gm: slurm_outputs/evaluate_plants_nbh_global_gm1021.out
+  -> recall 0.060
+  -> very low
+- Plants vs nbh one to one gm: slurm_outputs/evaluate_plants_nbh_one_to_one_gm1022.out
+  -> recall 0.403
+  -> higher but still too low, need to investigate further
+
+
+
+
+Gene classification:
+needs to be rewritten based on new input, directories
+- in drosophila annotations there is no classification of biotype, classification need to be done without that
+- in plants there is biotype classification
+
+
+What was done (21.11): calculated region GRIS, extracted 1:1 pairs for plants and drosophila; evaluated plants against synteny algorithm
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The results are on the server under /storage/EasyVectorOmics/cactus/results/
+Time: 5 hours
+Problems: Very low recall (global_pairs_gm = 0.060 and one_to_one_gm = 0.403), need to look at mismatches in details
+Next steps: evaluate drosophila vs synteny algorithm; prepare and run BUSCO and Compleasm for plants and drosophila; prepare and run PTP
+
+
+PLan:
+
+Tomorrow:
+- prepare and run BUSCO Compleasm
+- Prepare and run PTP
+- Inspect Tree algorithm and how to run, [run Tree algorithm]
+- Search for Circos alternatives, try to run the Circos program once again, debug with Claude or Copilot if needed; if doesnt work, try R packages
+
+
+Sunday: 
+- Finish if needed and evaluate all algorithms
+- Finish gene_classification script for plants and drosophila
+- Implement evaluation of paralogs, and evaluate in mammals, drosophila and plants
+- Finish plots for plants and drosophila
+
+
+
+22.11.2025
+----------
+
+Tasks for today:
+- evaluate cardamine vs og orhtologs file - done
+- obtain 1:1 from OF cardamine (/storage/EasyVectorOmics/cardamine/material/OrthoFinder/Results_Oct31) - done
+- Tree algorithm - postponed
+- Prepare and run BUSCO and compleasm: - postponed
+  - Filter keeping longest isoform if needed
+  - Extract proteomes with gffread
+  - download lineages for busco and compleasm
+  - run busco and compleasm
+- PTP - done
+
+
+Uploaded the provided file with original orthologs
+- material/cardamine/filtered_orthologs.tsv
+- adjusted the evaluation script for that
+- job 1023, slurm_outputs/evaluate_original_orthologs_plants1023.out
+- recall 0.291
+
+
+Evaluating OrthoFinder vs plants cactus
+- obtaining 1:1 orthologs from OrthoFinder:
+  - uncommenrt corresponding lines for input in extract_one_to_one_orthofinder.py
+  - job 1026
+  - results are in results/evaluation/plants/vs_orthofinder/orthofinder_1to1.tsv
+  - evaluation job 1027, slurm_outputs/evaluate_orthofinder_plants1027.out
+  - recall 0.280
+
+
+PTP for plants
+- files are in /storage/EasyVectorOmics/phylotreepruner/
+- adjusted script fix_labels.sh for plants input and functional approach
+  - job 1033
+- renamed pruned to ptp_logs
+- adjusted phylotreepruner.sh script for plants input and functional approach
+- min_number_of_taxa for plants = 2
+  - job 1035, results are at results/plants/MSA_fixed/*_pruned.fa
+- adjusted extract_one_to_one.py for plants, for now need to uncomment for each input
+  - job 1036, results are in results/plants/ptp_one_to_one_pairs.tsv
+- checking the pairs with check_one_to_one_ptp.py
+  - job 1038, all pairs should be 1:1
+
+
+Evaluating PTP vs plants cactus:
+- adjusted evaluate.py for ptp input
+- job 1039, slurm_outputs/evaluate_ptp_plants1039.out
+- Recall: 0.096
+
+Evaluating algorithms agains each other, plants (Jaccard)
+- for now without tree
+- heatmap is at results/evaluation/plants/all_vs_all_jaccard_heatmap.png 
+- low jaccard similarity everywhere - large disagreement between methods, need to investigate further
+
+
+BUSCO/compleasm:
+- files are in /storage/EasyVectorOmics/busco/
+- created plants/ and drosophila/ directories in results/
+
+
+23.11.2025
+----------
+
+Tasks for today:
+- Obtain 1:1 from drosophila OrthoFinder - done
+- PTP for drosophila - postponed
+- evaluate drosophila cactus vs nbh - done
+- evaluate drosophila cactus vs OF - done
+- evaluate vs PTP - postponed
+- Tree for plants and drosophila - postponed
+- Evaluate Tree plants and drosophila - postponed
+- Evaluate all vs all plants amd drosophila - done
+
+OrthoFinder results for drosophila (without MSA): /media/BioNAS/ag_hallab/EasyVectorOmics/analyze_sequences/material/dsim_dmel_dsec/OrthoFinder/Results_Dec02/
+
+
+PTP for drosophila:
+- Cant find MSA for drosophila, need to ask, eventually rerun orthofinder for them
+
+Obtaining 1:1 from OrthoFinder:
+- adjusted script extract_one_to_one_orthofinder.py for drosophila  
+  -> job 1041, results are at results/evaluation/drosophila/vs_orthofinder/orthofinder_1to1.tsv
+
+Evaluation for drosophila:
+- adjuted evaluation script for drosophila:
+  - global pairs gm
+    - job 1042, slurm_outputs/evaluate1042.out
+    - Recall: 0.113
+  - one to one gm
+    - job 1043, slurm_outputs/evaluate1043.out
+    - Recall: 0.886
+  - orthofinder:
+    - job 1044, slurm_outputs/evaluate1044.out
+    - Recall: 0.786
+
+
+Tree algorithm:
+- need file pickle_file = "results/harmonic_means_by_prefix.pkl", how to obtain? need to ask
+
+
+Evaluate nbh vs OF:
+- script evaluate_all_vs_all.sh
+- for now only nbh global, one to one and orthofinder
+- job 1045, heatmap is at results/evaluation/drosophila/all_vs_all_jaccard_heatmap.png 
+- good agreement between nbh 1:1 and orthofinder (Jaccard: 0.76)
+
+
+Evaluation plants vs nbh other results to see if there is also low recall:
+- cactus vs sum global pairs:
+  - job 1050
+  - recall 0.050
+- cactus vs sum one to one:
+  - job 1051
+  - recall 0.393
+- cactus vs pairs_original.tsv
+  - job 1052
+  - recall 0.431
+- pairs_transitive_local.tsv
+  - job 1053
+  - recall 0.431 (all metrics are same as pairs_original)
+- pairs_unique.tsv 
+  - job 1054
+  - recall 0.343
+ -> the best recall is pairs_original and pairs_transitive_local.tsv (both 0.431)
+ -> still need to investigate the mismatches
+
+
+Creating heatmaps for cactus evaluations with the results i have for now, plants and droso:
+-  plants: results/evaluation/plants/metrics_vs_cactus_only.png
+  - for now only nbh gm one to one; og orth; ptp and OF
+- drosophila: results/evaluation/drosophila/metrics_vs_cactus_only.png
+  - for now only nbh gm global; nbh gm 1:1 and OF
+- mammals: results/evaluation/metrics_vs_cactus_only.png
+
+
+What is missing:
+!! Merge request change things!!
+!! investigate low recall for plants!!
+!! Tree for plants!!
+!! Tree for drosophila!!
+!! Rerun OF for drosophila!!
+!! PTP for drosophila!!
+!! BUSCO/compleasm!!
+!! Read readme synteny algorithm!! 
+!! Find Circa alternatives and plot for mammals, plants and drosophila!!
+!! gene plots for plants!!
+!! gene plots for drosophila!!
+!! Finish gene_classification script for plants and drosophila!!
+!! Implement evaluation of paralogs, and evaluate in mammals, drosophila and plants!!
+!! Theory issue!!
+
+
+Summary of 22.11 and 23.11:
+What was done (22.11 & 23.11):
+- Executed PTP for plants
+- Obtained 1:1 orthologs from OrthoFinder results
+- Plants evaluation:
+    - Cactus vs provided original ortholog file
+    - Cactus vs OrthoFinder
+    - Cactus vs PTP
+    - Synteny vs provided orthologs vs OrthoFinder v PTP (Jaccard)
+    - Visualised as heatmaps
+- Drosophila evaluation:
+    - Cactus vs synteny algorithm (global pairs gm and one to one gm)
+    - Cactus vs OrthoFinder
+    - global pairs vs one to one vs OrthoFinder (Jaccard)
+    - Visualised as heatmaps
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The results are on the server under /storage/EasyVectorOmics/cactus/results/ . The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/
+Time: 10 hours
+Problems:
+- For PTP (drosophila): Can't find MSA in OrthoFinder results (searched in /media/BioNAS/ag_hallab/EasyVectorOmics/analyze_sequences/material/dsim_dmel_dsec/OrthoFinder/Results_Dec02/). Need to eventually rerun OrthoFinder with MSA option
+- For Tree algorithm (plants and drosophila): Can't find file harmonic_means_by_prefix.pkl for plants and drosophila needed
+- Low recall and disagreement between plants results - need further deeper investigation
+Next steps: Address problems; finish analyses for plants and drosophila
+
+
+24.11.2025
+----------
+
+Tasks for today:
+- OrthoFinder for drosophila - done
+
+
+OrthoFinder for drosophila:
+- script is taken from /storage/EasyVectorOmics/FastQ_GSE125483_JK/orthofinder_job.sh 
+- input is in /storage/EasyVectorOmics/phylotreepruner/material/input_orthofinder/
+  - The fasta files are copied from /media/BioNAS/ag_hallab/EasyVectorOmics/analyze_sequences/material/dsim_dmel_dsec/ 
+- Created a directory for OrthoFinder output: /storage/EasyVectorOmics/phylotreepruner/results/orthofinder_results/
+  -   REMOVE because results are in the input
+- results are in /storage/EasyVectorOmics/phylotreepruner/material/input_orthofinder/OrthoFinder/Results_Nov24/
+
+
+25.11.2025
+----------
+
+Meeting notes:
+- see issue #8 for other tasks
+- understand once again what is GRIS score, what is neighborhood score from the synteny neighborhood algorithm
+- i keep confusing the terms, read and understand theory
+- RErun orthofinder so that it stores scores ?
+- look if PTP store scores
+
+
+merge request tasks left:
+- readme for cactus
+- readme for evaluation
+- update readme for ptp
+- merge readmes together
+- delete old scripts from repo
+- rename scripts 
+- weekly report - done
+- either synteny block or synteny region, change everywhere
+- change the data_check scripts so they dont store results in data_check directory, but just in results
+- move all old results away, clean the results/ directory
+- rename block_length.sh to check_synteny_regions.sh 
+  - change so that it doesnt create files, just statistics
+- rename filter_ann.sh to filter_annotation_to_gene_only.sh
+- clean the scripts, remove commented out stuff  
+
+
+
+28.11.2025
+----------
+
+
+Tasks for today:
+- PTP for drosophila
+- Merge request tasks:
+  - Readme tasks:
+    - Finish cactus readme
+      -  [DONE] dont forget to change script names in the workflow
+    - Evaluation readme
+    - update readme for PTP
+    - merge readmes together
+  - Script cleaning tasks:
+    - [DONE] delete old scripts form repo
+    - [DONE] remane scripts
+    - [DONE] either synteny block or synteny region, change everywhere
+    - [DONE] move all old results away, clean the results/ directory
+    - [DONE] rename block_length.sh to check_regions_after_halsynteny.sh 
+    - [DONE] rename filter_ann.sh to filter_annotation_to_gene_only.sh
+    - clean the scripts, remove commented out stuff #########################
+    - [DONE] in slurm scripts rename the job names and python scripts
+    - [DONE] check if everywhere mammalia correct and replace mammals with mammalia in scripts 
+    - [DONE] change plants/ to brassicaceae/ everythere: in scripts and paths and results dir
+    - [DONE] Look at the script create_map_gene_names_id.sh if its for mammals only, then rename and remove plants and drosophila
+    - Look at the script plot_total_number_genes_mammalia.py and change for mammals only ######################
+
+Renaming scripts:
+- mv filter_ann.sh filter_annotation_to_gene_only.sh
+- mv block_length.sh check_regions_after_halsynteny.sh
+- mv plot_genes_per_block.py plot_genes_per_region.py
+- mv plot_genes_per_block.sh plot_genes_per_region.sh
+- mv compare_cactus_b_set.py evaluate_cactus_vs_b_set.py
+- mv compare_cactus_b_set.sh evaluate_cactus_vs_b_set.sh
+- mv evaluate_all_vs_all.py evaluate_methods_vs_each_other_and_plot.py
+- mv evaluate_all_vs_all.sh evaluate_methods_vs_each_other_and_plot.sh
+- mv evaluate_bc_set.py evaluate_methods_vs_bc_set.py
+- mv evaluate_bc_set.sh evaluate_methods_vs_bc_set.sh
+- mv evaluate.py evaluate_methods_vs_cactus.py
+- mv evaluate.sh evaluate_methods_vs_cactus.sh
+- mv extract_id_biotype_from_ann.sh extract_id_biotype_from_annotation_mammalia.sh
+- mv find_genes_in_blocks.sh identify_genes_in_regions.sh
+- mv get_halsynteny_parameters_cardamine.sh get_halsynteny_parameters_brassicaceae_and_drosophila.sh
+- mv gtf_to_bed.sh gtf_to_bed_brassicaceae_and_drosophila.sh
+- mv map_names_id.sh map_gene_names_to_ids_mammalia.sh
+- mv reciprocity.py reciprocity_and_resolve_one_to_many.py
+- mv reciprocity.sh reciprocity_and_resolve_one_to_many.sh
+- mv gtf_to_bed_mammals.sh gtf_to_bed_mammalia.sh
+- mv plot_total_number_genes_mammals.py plot_total_number_genes_mammalia.py
+- mv plot_total_number_genes_mammals.sh plot_total_number_genes_mammalia.sh
+- mv create_map_gene_names_id.sh create_map_gene_names_id_mammalia.sh
+
+
+Changing SLURM job scripts:
+- Changed evaluate_cactus_vs_b_set.sh script
+- Changed evaluate_methods_vs_bc_set.sh script
+- Changed evaluate_methods_vs_cactus.sh script
+- Changed evaluate_methods_vs_each_other_and_plot.sh script
+- Changed reciprocity_and_resolve_one_to_many.sh script
+- Changed plot_genes_per_region.sh script
+- Changed plot_total_number_genes_mammalia.sh script
+
+
+Renaming directories:
+- mv results/ann_genes/plants results/ann_genes/brassicaceae
+- mv results/evaluation/plants results/evaluation/brassicaceae
+- mv results/genes_in_blocks/plants results/genes_in_blocks/brassicaceae
+- mv results/halsynteny_output/plants results/halsynteny_output/brassicaceae
+- mv results/ann_genes results/gene_only_annotation
+
+
+Changing paths in the scripts:
+- Changed process_hal.sh
+- Changed psl_to_bed.sh
+- Changed check_regions_after_halsynteny.sh
+- Changed filter_annotation_to_gene_only.sh
+- Changed create_map_gene_names_id_mammalia.sh 
+- Changed gtf_to_bed_mammalia.sh
+- Changed gtf_to_bed_brassicaceae_and_drosophila.sh
+- Changed map_gene_names_to_ids_mammalia.sh
+- Changed identify_genes_in_regions.sh
+- Changed create_region_and_gene_tables.sh 
+- Changed plot_genes_per_region.py
+- Changed calculate_region_gris.py
+- Changed reciprocity_and_resolve_one_to_many.py
+- Changed extract_id_biotype_from_annotation_mammalia.sh
+
+
+Creating results/evaluation/mammalia/ and moving all mammals content from evaluation/ there.
+- mv results/evaluation/all_vs_all/ results/evaluation/mammalia/
+- mv results/evaluation/all_vs_all_jaccard_heatmap.png results/evaluation/mammalia/
+- mv all_vs_bc_set/ mammalia/
+- mv *.png mammalia/
+- mv vs_* mammalia/
+
+
+Creating results/old_results/ and moving all results from previous approaches there:
+- mv results/gene_pairs/ results/old_results/
+- mv results/mapped_genes/ results/old_results/
+- mv results/mapped_proteins/ results/old_results/
+- mv results/protein_pairs/ results/old_results/
+- mv results/ref_free_approach/ results/old_results/
+- mv results/*.csv results/old_results/
+- mv results/plots/ results/old_results/
+
+
+Readme:
+- What is left
+  - cactus pipeline:
+    - Source for material files
+    - python packages and their versions used
+    - updated workflow with some scripts
+    - some detailed workflow descriptions
+  - evaluation part
+  - ptp updated readme
+  - merged together, the header and description
+
+
+PTP for drosophila:
+- rm -r results/orthofinder_results/, OF results are in material/input_orthofinder/OrthoFinder/
+- mv results/plants results/brassicaceae
+- mkdir results/drosophila
+- mkdir results/mammalia
+- moved mammals results to mammalia/:
+  - mv results/MSA_fixed/ results/mammalia/
+  - mv results/ptp_logs/ results/mammalia/
+  - mv results/ptp_one_to_one_pairs_new.tsv results/mammalia/
+  - mv results/ptp_one_to_one_pairs.tsv results/mammalia/
+  - mv results/Trees_fixed/ results/mammalia/
+- fix_labels.sh:
+  - Adjusted paths
+  - Added mkdir -p check
+  - job 1074, slurm_outputs/fix_labels1074.out 
+    -> MSA are fxed but trees not, need to look tomorrow at the regex 
+- phylotreepruner.sh:
+  - Adjusted paths
+  - Added mkdir -p check
+
+
+
+What was done (28.11):
+Addressed merge request tasks: renamed scripts; removed old scripts; cleaned results directory on the server - moved old results to old_results/ directory for now 
+Readme: finished workflow description for cactus pipeline (there are still some adjustments left)
+PhyloTreePruner for Drosophila: prepared input files
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The results are on the server under /storage/EasyVectorOmics/cactus/results/ . The readme (for now only for cactus pipeline) is in gene_relationship_classifier repository
+Time: 5 hours
+Next steps:
+PTP: Execute PTP; extract 1:1 orthologs; evaluate results against cactus;
+BUSCO/compleasm: Prepare input files for brassicaceae and drosophila;
+Readme: Finish cactus-pipeline readme; update the PTP readme with brassicaceae and drosophila input; start with evaluation readme part
+
+
+29.11.2025
+----------
+
+Tasks for today:
+- PTP drosophila: 
+  - [DONE] Execute PTP; 
+  - extract 1:1 orthologs;
+  - evaluate results against cactus;
+  - visualize
+  - [DONE] update readme
+
+
+
+Fix_labels for PTP drosophila:
+- rewritten so that function has robust approach for all species
+- rerun for all species, job 1079, results for mammals and brassicaceae was in _test/ dirs
+- Number of files in the directories:
+  - Mammals:
+    - Number of MSA_fixed/ files (also contains PTP results): 28815
+    - Number of MSA_fixed_test/ files: 15513
+    - Number of Trees_fixed/ files: 13458
+    - Number of Trees_fixed_test/ files: 13458
+  - Brassicaceae:
+    - Number of MSA_fixed/ files (also contains PTP results): 24566
+    - Number of MSA_fixed_test/ files: 18542
+    - Number of Trees_fixed/ files: 7002
+    - Number of Trees_fixed_test/ files: 7002
+
+PTP drosophila:
+- Changed the paths to _test/  
+- Will compare the number of files after the run to see if the new fix_label function indeed correct
+- mkdir results/<species_type>/ptp_logs_test/
+- job 1080
+- Mammals:
+  - Number of MSA_fixed/ files (with PTP results): 28815
+  - Number of MSA_fixed_test/ files (with PTP results): 28613
+  - Still mismatch, I will leave it for now, will extract the 1:1 pairs and evaluate to compare the metrics later, for mammals, plants as well
+
+Extract 1:1 from PTP drosophila:
+- job 1083
+- results are in results/drosophila/ptp_one_to_one_pairs.tsv
+
+ptp_readme:
+- Updated readme: /storage/EasyVectorOmics/phylotreepruner/ptp_readme.txt
+
+
+What was done (29.11): PTP for drosophila, updated readme for PTP
+Problem: There are isues with 1:1 ortholog extraction of PTP for Drosophila, there is also very low recall (0.06). For now postponed to proceed with other tasks.
+
+
+30.11.2025
+----------
+
+Task for today:
+- Mammals:
+  - [DONE] jaccard of busco and compleasm
+  - [DONE] decide how to procceed with them
+  - [DONE] Prepare script b-set vs methods and start evaluaiton
+
+
+Jaccard of BUSCO vs compleasm for mammals:
+- the results of the evaluation are in /storage/EasyVectorOmics/ortholog_evaluation/compare_busco_compleasm/busco_compleasm_metrics.txt
+- Jaccard Similarity: 0.962
+  -> intersection of BUSCO+compelasm will be kept
+
+Evaluate the methods vs B-set (Busco+compleasm):
+- mkdir results/evaluation/mammalia/vs_b_set/vs_neighborhood
+  mkdir results/evaluation/mammalia/vs_b_set/vs_tree
+  mkdir results/evaluation/mammalia/vs_b_set/vs_ptp
+  mkdir results/evaluation/mammalia/vs_b_set/vs_orthofinder
+- new script evaluate_methods_vs_b_set.py
+  - vs nbh gm:
+    - job 1089, slurm_outputs/evaluate_methods_vs_b_set1089.out
+    - Recall: 0.710
+
+
+What was done (29.11 & 30.11): 
+- PTP for drosophila
+- updated readme for PTP
+- Looked at Jaccard similarity of BUSCO and compleasm for mammals (0.962) and decided to kept the intersection of them (B-set)
+- prepared evaluation script of methods vs B-set
+- evaluated B-set vs synteny neighborhood algorithm
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The results are on the server under /storage/EasyVectorOmics/cactus/results/ 
+Time: 6 hours
+Problems: There are issues with 1:1 ortholog extraction of PTP for Drosophila, script that checks 1:1 relationship shows that there are still 1:many cases. There is also very low recall when evaluating those agains cactus (0.06). For now postponed in order to proceed with other tasks.
+Next steps: Finish evaluation of mammals B-set, visualize; Start BUSCO and compleasm for plants and drosophila
+
+
+1.12.2025
+---------
+
+Tasks for today:
+- Mammals evaluation of methods vs B-set:
+  - [DONE] vs nbh sum
+  - [DONE] vs tree
+  - [DONE] vs OF
+  - [DONE] vs PTP
+  - [DONE] visualize 
+  - [DONE] upload
+  - [DONE] clean plots in the repo
+
+- BUSCO for plants:
+  - [DONE] prepare input files:
+    - [DONE] proteomes
+    - [DONE] download lineages
+
+- BUSCO for drosophila:
+  - prepare input files:
+    - proteomes
+    - download lineages
+
+
+Mammals evaluation of methods vs b.set:
+- vs nbh gm:
+  - job 1089, slurm_outputs/evaluate_methods_vs_b_set1089.out
+  - Recall: 0.710
+- vs nbh sum:
+  - job 1090, slurm_outputs/evaluate_methods_vs_b_set1090.out
+  - Recall: 0.700
+- vs tree majority
+  - job 1091, slurm_outputs/evaluate_methods_vs_b_set1091.out
+  - Recall: 0.644
+- vs tree standard
+  - job 1092, slurm_outputs/evaluate_methods_vs_b_set1092.out
+  - Recall: 0.646  
+- vs tree whitelist
+  - job 1093, slurm_outputs/evaluate_methods_vs_b_set1093.out
+  - Recall: 0.646 
+- vs PTP
+  - job 1095, slurm_outputs/evaluate_methods_vs_b_set1095.out
+  - Recall: 0.595
+- vs OrthoFinder
+  - job 1097, slurm_outputs/evaluate_methods_vs_b_set1097.out
+  - Recall: 0.675 
+- visualisation:
+  - heatmap is in results/evaluation/mammalia/cactus_bc_and_b_heatmap.png
+
+
+repo plots/ cleaning:
+- Moved all directories that are related to statistics, distribution, coverage etc to statistics/
+- kept only heatmap of all 3 references, the other two removed
+
+
+BUSCO for plants - planned workflow:
+- Arabidopsis workflow:
+  - download proteome from database
+  - using map geneID-ProteinID group proteins per gene, pick the longest isoform sequence per gene and make a new fasta file
+- Do the same for Cardamine
+- Download lineage
+- Run BUSCO
+
+Created directories in material for each species type
+
+BUSCO - Arabidopsis:
+- protein sequences are downloaded from https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/plants/fasta/arabidopsis_thaliana/pep/Arabidopsis_thaliana.TAIR10.pep.all.fa.gz
+wget https://ftp.ebi.ac.uk/ensemblgenomes/pub/release-62/plants/fasta/arabidopsis_thaliana/pep/Arabidopsis_thaliana.TAIR10.pep.all.fa.gz
+- unpacked with gzip -d Arabidopsis_thaliana.TAIR10.pep.all.fa.gz 
+  -> Arabidopsis_thaliana.TAIR10.pep.all.fa
+- script extract_longest_isoform.sh
+  -> results is at /storage/EasyVectorOmics/busco/results/brassicaceae/longest_isoform/arabidopsis_longest_isoform.fa 
+
+BUSCO - Cardamine:
+- protein sequences are downloaded from https://chi.mpipz.mpg.de/download/annotations/carhr38.aa.fa
+wget https://chi.mpipz.mpg.de/download/annotations/carhr38.aa.fa
+  -> carhr38.aa.fa
+- longest isoform is at results/brassicaceae/longest_isoform/cardamine_longest_isoform.fa 
+
+BUSCO-lineage for brassicaceae:
+- used under following link https://busco-data.ezlab.org/v5/data/lineages/brassicales_odb12.2025-07-01.tar.gz
+- script download_lineage_busco.sh was modified for brassicales_odb12
+- job 1103, slurm_outputs/busco_lineage1103.out
+- lineage is in storage/EasyVectorOmics/busco/busco_downloads/
+
+Compleasm-lineage for brassicaceae:
+- script download_lineage_compleasm.sh was modified for brassicales_odb12
+- job 1104, slurm_outputs/compleasm_lineage1104.out
+- lineage is in storage/EasyVectorOmics/busco/material/brassicaceae/compleasm_lineage/
+
+BUSCO for Brassicaceae:
+- job 1108
+- needs to be executed in results directory!!!
+- results are in results/brassicaceae/busco_results/
+
+
+for tomorrow: run compleasm, extract 1:1, evaluate
+
+What was done (1.12):
+Evaluated methods vs B-set, Visualized
+For BUSCO and compleasm for Brassicaceae: downloaded proteome, extracted longest isoform, downloaded lineages, run BUSCO
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/The results of BUSCO are on the server under /storage/EasyVectorOmics/busco/results/
+Time: 5 hours
+Next steps: finish BUSCO and compleasm for brassicaceae, evaluate, create B-set; Start addressing details of the evaluation of cactus vs synteny neighborhood
+
+
+2.12.2025
+----------
+
+Tasks for today:
+- Brassicaceae:
+  - [DONE] Run compleasm
+  - [DONE] extract 1:1 from BUSCO
+  - [DONE] extract 1:1 from compleasm
+  - [DONE] evaluate, create b-set
+- Mammalia:
+  - [DONE] evaluate cactus vs one to one nbh
+  - [DONE] evaluate bc vs one to one nbh
+  - [DONE] visualize once again  
+  - cactus vs nbh:
+    - look at false negatives
+
+
+Compleasm Brassicaceae:
+- Updated the script compleasm.sh 
+- job 1112, slurm_outputs/compleasm1112.out
+- results are in results/brassicaceae/compleasm_results/
+
+Extract single copy orthologs from BUSCO and compleasm brassicaceae:
+- script extract_sco.py was rewritten for more robust and different inputs
+- job 1113, slurm_outputs/extract_sco1113.out
+- results are in results/brassicaceae/extracted_orthologs/
+
+Extract 1:1 orthologs from SCO tables brassicaceae:
+- script one_to_one.py was rewritten for more robust approach and diff inputs
+- job 1115, slurm_outputs/one_to_one1115.out
+- results are in results/brassicaceae/extracted_orthologs/one_to_one_<busco/compleasm>_arabidopsis_cardamine.tsv
+
+Evaluate BUSCO vs compleasm brassicaceae:
+- script compare_busco_compleasm.py and .sh was renamed to evaluate_busco_vs_compleasm.py and rewritten to be robust
+- results are results/brassicaceae/evaluation/
+Pairs in ref_set: 4002
+Pairs in second_set: 3583
+TP: 3581, FN: 421, FP: 2
+Recall: 0.895
+Precision: 0.999
+F1 Score: 0.944
+Jaccard Similarity: 0.894
+Recovered 89.5% of ref 1:1 orthologs (3581 out of 4002)
+-> jaccard is <0.95, need to split to busco-only and compleasm-only in the future and evaluate
+
+
+Evaluate cactus vs one to one nbh gm mammals:
+- job 1120
+- recall same -> okay
+
+Evaluate BC vs one to one nbh gm mammals:
+- job 1121
+- recall same -> okay
+
+
+What was done (2.12): Compleasm for Brassicaceae; extracted 1:1 orthologs from BUSCO and compleasm; evaluated BUSCO vs Compleasm
+Where: All BUSCO and compleasm-related data is for now on the server in `/storage/EasyVectorOmics/busco/`
+Time: 5 hours
+Next steps: Focus on new tasks from the issue #8 for mammals: start addressing false negatives and false positives for the evaluiation cactus vs synteny algorithm
+
+
+3.12.2025
+---------
+
+Tasks for today:
+- mammals cactus vs nbh false negatives:
+  - [DONE] find and look at the file of cactus-only pairs
+  - [DONE] Read documentation on synteny alg regarding nbh scores, how they are calculated
+  - obtain nbh scores for cactus-only pairs
+  - plot the distribution
+  - check with hypothesis
+- mammals cactus vs nbh false positives:
+
+
+
+Cactus-only pairs vs nbh, mammals (false negatives):
+  - cactus-only pairs: /storage/EasyVectorOmics/cactus/results/evaluation/mammalia/vs_neighborhood/missed_by_nbh_gm.tsv
+  - FN: 15168
+  - Need to ask about the scores, how to obtain
+
+
+5.12.2025
+---------
+
+Tasks for today:
+- [DONE] Prepare script for nbh score calculation
+- [DONE] Calculate N-scores
+
+nbh score calculation:
+- function taken from synteny algorithm and slightly changed based on the structure of the input
+- script neighborhood_score.py
+
+
+
+7.12.2025
+---------
+
+Tasks for today:
+- Synteny linear plots
+
+- The script provided for synteny plots draws, but the plots are not looking nice. searching for alternatives, maybe web based
+
+8.12.2025
+---------
+
+Tasks for today:
+- look once again at false negatives investigation, understand all scripts, interpret the results
+- Try synteny plots with https://synvisio.github.io or jcvi.graphics.synteny
+- Read readme and understand how neighborhood works
+
+A lot of synteny plots tools require MCScanX Collinearity file
+
+Trying ntSynt https://github.com/bcgsc/ntSynt-viz/ :
+- mamba create -n ntsynt
+- Installing dependencies:
+conda install --yes -c conda-forge -c bioconda quicktree snakemake intervaltree r-base bioconductor-treeio r-ggpubr bioconductor-ggtree r-phytools r-dplyr r-argparse r-scales r-stringr
+R -e 'install.packages(c("gggenomes"), repos = "https://cran.r-project.org")'
+- mkdir cactus/results/circos_plots/linear_ribbon/
+- wget https://github.com/bcgsc/ntSynt-viz/releases/download/v1.0.0/ntSynt-viz-1.0.0.tar.gz
+tar xvzf ntSynt-viz-1.0.0.tar.gz
+- export PATH=/storage/EasyVectorOmics/cactus/results/circos_plots/linear_ribbon/ntSynt-viz-1.0.0/bin:$PATH
+- prepared input for ntsynt: script results/circos_plots/linear_ribbon/prepare_input_ntsynt.sh
+  - input is taken from files that were prepared for Circa
+  - !!!!! Later clean this prt and describe how exactly were the plots created!!!!!
+- for ntsynt: script run_ntsynt.sh in cactus/results/circos_plots/linear_ribbon/
+- plot is at *synteny_ribbon-plot.png
+
+- look tomorrow how to improve, clean names, do other species
+- upload nbh score script and plots and synteny plots
+
+What was done (8.12): investigated cactus-only pairs in the Cactus vs synteny algorithm evaluation: calculated neighborhood scores, visualized; started synteny visualisation
+Where: Bioserver
+Time: 5 hours
+Next steps: finish synteny visualisation; upload everything to the repository; investigate neighborhood-only pairs
+
+
+9.12.2025 (Meeting)
+---------
+
+Tasks for today:
+- Rename BC-set to CactBUSComp
+- [DONE] Rename B-set to BUSComp
+- [DONE] change intersect to union
+- Rerun Cactus vs BUSComp
+
+
+Created a dir for each pair in results/circos_plots/linear_ribbon/
+Created a dir for slurm output
+
+Need to prepare input .ribbons for other species (see script for circa)
+
+Meeting notes:
+- see updates to the issue #8 and written notes
+
+
+BUSComp set:
+- script busco/methods/compare_busco_compleasm.py
+- instead of intersection, union is taken
+- b-set is renamed
+- Need to fix the script for the busco input columns because they are specific for each species 
+
+
+11.12.2025
+----------
+
+Tasks for today:
+- Rerun everything related to BUSComp and CactBUSComp
+- GRIS-score start Implementing
+
+mkdir results/mammalia/evaluation
+
+evaluate busco vs compleasm, union-set:
+- The script evaluate_busco_vs_compleasm.py was changed for mammals input
+- results:
+Pairs in ref_set (BUSCO): 52749
+Pairs in second_set (Compleasm): 50779
+Pairs in ref_set (BUSCO): 52749
+Pairs in second_set (Compleasm): 50779
+
+TP: 50760, FN: 1989, FP: 19
+Recall: 0.962
+Precision: 1.000
+F1 Score: 0.981
+Jaccard Similarity: 0.962
+Recovered 96.2% of ref 1:1 orthologs (50760 out of 52749)
+
+
+12.12.2025
+----------
+
+Tasks for today:
+- [DONE] Fraction fix
+
+Looking at the N-score script once again to identify problem with the fraction:
+- Identified issues:
+    1. There was a mistake in loading the Cactus 1:1 orthologs from each species pair. 
+  They were united into one dictionary, where one gene from species A appear several times, having different partners depending on the species pair. 
+  But my script considered those cases as contradictory as well, this caused mappings to be overwritten/mixed across pairs, and the numbers were inflated a
+rtificially. 
+  I fixed this by computing contradictory cases separately for each species pair.   
+    2. I mislabeled the plotted metric. 
+  I originally computed a ratio (Nscore_C / Nscore_N), which is not bounded and can exceed 1, but referred to it as a “fraction”. 
+  For a bounded 0-1 measure, I now use a normalized fraction: score_C / (score_C + score_N).
+- The script neighborhood_score_cactus.py was fixed
+- The fraction plot shows the fraction of 0.5 in the most cases
+
+
+13.12.2025
+----------
+
+Tasks for today:
+- [Done] Fraction check and understand
+- [DONE] Upload to the server and run there
+- [DONE] Upload plots to the gitlab
+- [DONE] Daily
+
+
+Interpretation of the fraction plot:
+- The fraction tells us, how different are the N-scores of the candidates picked by Cactus and synteny neighborhood algorithm in a contradictory case.
+- So if we have, for example N-score for Cactus-candidate 13 and for Neighborhood candidate 15 (so the candidates have similar neighborhood support), we get the fraction approx. 0.5.
+- If we have 1 for Cactus-candidate and 8 for Neighborhood-candidate (so the neighborhood algorithm picked the one candidate with the stronger neighborhood support), we get the fraction 0.1.
+- If Cactus-candidate has the stronger neighborhood support, as the Neighborhood-candidate (which we don't expect often, as far as I understood), we have the fraction >0.5 to 1.
+- The plot tells us that we have in the most of the cases candidates with similar neighborhood support.
+
+
+Upload of the script:
+- mkdir results/evaluation/mammalia/vs_neighborhood/disagreement_investigation
+- cactus/gene_relationship_classifier/methods/neighborhood_score_cactus.py
+- job 1140
+- results are in results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/
+
+What was done (13.12): investigated fraction calculation and N-scores for false negatives (Neighborhood vs Cactus)
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/
+Time: 5 hours
+Next steps: GRIS score calculation for false negatives and false positives investigation
+
+
+14.12.2025 - 16.12.2025
+-----------------------
+
+Tasks for today:
+- GRIS for false negatives:
+  - [Done] Understand the idea of GRIS, what is it, what is this acronym for
+  - Read and understand what exactly do i need for false negatives
+  - Read and understand the part of GRIS calculation for false positives, and what do i need
+  - Look if i can reuse old scripts for GRIS calculation
+  - implement
+
+GRIS:
+- GRIS: Geometric Reciprocal Identity-Span score (name was suggested by chatgpt)
+  -> geometric mean of overlap and percent identity, so the same as geometric mean in synteny algorithm pipeline
+  -> reciprocal because 
+  -> identity-span because
+  -> So GRIS literally measures how broadly (span) and how well (identity) two genes align.
+
+Reciprocal — ideally means the score is symmetric between the two species (Canis ↔ Macaca).
+In practice, a single-direction GRIS (Canis→Macaca) can differ slightly due to how alignments are exported, but the reciprocal GRIS (e.g., sum or mean of both directions) restores that symmetry — it’s “reciprocal” in the conceptual sense
+-> check if region gris used for the cactus pipeline is reciprocal
+
+
+
+
+
+***
+questions:
+- what does reference free means in context of cactus
+- All aligned bases and indels across genomes - what does indels mean
+- Transitivity as a Tool for Reconstructing Ortholog Groups
+You're proposing a model where:
+Edges in a gene graph represent confirmed one-to-one orthology relations, e.g., from CAT output.
+Nodes are genes across species.
+Ortholog groups are then defined as connected components in this graph — not necessarily cliques.
+This embraces the idea that:
+“If A ↔ B and B ↔ C via one-to-one orthology, then A and C are in the same ortholog group — even if the A–C direct mapping is lost or ambiguous.”
+***
+
+False negatives:
+- there is no species pair division of cactus_only pairs  
+  - added with the help of gene_to_protein map
+  - to be continued
+  - species pair division is implemented,
+  - need to check if I am doing correctly that i need to obtain GRIS score from the geomean diamond
+  - after that implement distances
+  - after that run, calculate, plot
+
+
+
+CactusSupportScore:
+- Pipeline from issue #8 refined and corrected:
+  - instead of mafStats custom python script will be used, since mafStats isnt a part of haltools and need to be set update
+  - steps:
+    - alighments with hal2maf
+    - pident calculation
+    - overlap calculation
+    - alignment depth calculatuon
+    - cactus support score calculation
+    - distances
+    - plot everything needed
+
+
+
+ mkdir results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/cactus_support_score/false_positives
+
+
+dividing false positives into species:
+- same idea as by false negatives:
+  - uses gene_to_protein_map.tsv 
+  - creates species pair files and unmapped ones in results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/
+  - IMPORTANT: There were weird species names in the map, seems like protein descriptions are slipped instead of species
+    - in the splitting script the weird namings were replaced with species names obtained from annotation (mapped to ids of weird entries)
+  - job 1145
+  - NEW GENE-PROTEIN MAP is saved in results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/gene_to_protein_map_FIXED.tsv
+  - The results are in results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/fp_by_species_pair/
+   
+
+get alignments:
+- script from prev approach get_alignments.sh was changed based on the new input
+- also added mapping gene-protein
+- job 1157
+
+
+test_get_alignments script was used to see if hal2maf work at all, can be removed later
+
+
+identified problem with query target order in false positives per species pairs:
+  - sometimes in can-mac query is canis and sometimes Macaca
+  - this breaks hal2maf
+  - fixing the script 
+  - job 1160
+  - same files, see above
+
+
+another attempt to get alignments:
+- job 1161
+- results are in results/evaluation/mammalia/vs_neighborhood/disagreement_investigation/cactus_support_score/false_positives/alignments*
+
+calculate pident and overlap:
+- halsnp works only at whole-genome, not at maf
+- need to use custom scripts: 
+  - script parse_map_for_pident_overlap
+  - to be contunued
+
+
+
+synteny linear plots:
+- the current are pairwise
+- need to make comparison where all species are plotted
+- adjusted prepare_input_ntsynt.py
+  - job 1162
+  - results are in results/circos_plots/linear_ribbon/multi_species_synteny_blocks.tsv
+- problems for attempting to plot pairwise comparisons as multiple species
+- needed to use custom scripts
+- min_block_size=5000000
+- plot is at results/circos_plots/linear_ribbon/python_script/multi_species_synteny_chr_colored.png
+- script: customized_visualization.py
+
+
+17.12.2025
+----------
+
+Meeting notes:
+-!!!! Friday 19.12 at 9:00 meeting
+-!! highest priority !!
+-wrong fraction formula
+-we need a/b, not a/b+c, fraction is actually same as ratio, tf i calculated.??
+-so i need to change formula once again, check if i really divide contradictory, and there are no problems in my code
+-we cannot have values >1, because we have sonst cactus choosing the candidates w/ higher N-score, which is weird cause its NBH-algorithm task, it is supposed to pick those candidates.
+-If no errors on my side, look at nbh script from Vivian, try to find a bug there. Identify few cases of weird cactus picking high score and run them through the NBH algorithm. Use debugging through print or python debugger. Question: why are they not selected by neighborhood even when they have high N-support, N-score.
+-ALSO: Rename sets!!! and add visualization of cactus vs B-set to heatmap of cactus-related stuff and to all vs all jaccard similarity plot
+
+
+Tasks for today:
+- [DONE]change the formula for the fraction
+- [DONE] Write unit tests for the script for n-score calculation and fraction
+- [DONE] run tests and anaylze results
+
+---- Some thoughts from Claude ----
+Before assuming a bug in nbh, consider these legitimate scenarios:
+Neighborhood algorithm uses a threshold - If it requires minimum N-score, it might reject the best match and pick second-best
+Tie-breaking rules - When multiple candidates have same N-score, how does it choose?
+Different filtering - Does neighborhood algorithm filter by additional criteria (e.g., minimum GM score)?
+Data version mismatch - Are the neighborhood results and the neighborhoods.pkl from the same run?
+
+Based on the extreme differences (16 vs 1), I suspect your Neighborhood algorithm might be:
+-Primarily using GM score with N-score as a tie-breaker
+-Using a weighted combination like: score = GM * 0.7 + N-score * 0.3
+-Filtering by GM threshold first, then picking best N-score from remaining candidates
+----
+
+-> test results suggest existing a criteria other than N-score for selection, need to check tomorrow
+  -> possibly that Neighborhood algorithm prioritizes GM over N-score!
+
+-> download latest inpput files from the server/repo
+
+-> there are some checks left for fns script_ see to do from claude
+
+18.12.2025
+----------
+
+Tasks for today:
+- download latest input files and dicts
+- Finish tests of fn script
+- test/debug neighborhood algorithm
+
+
+From debugging of the False Negatives script:
+
+2,247 contradictory cases (out of 7,827 total) where Cactus N-score > Neighborhood N-score
+These come from all 6 species pairs combined
+About 28.7% of contradictory cases (2247/7827)
+
+
+Top 10 suspicious cases (highest ratios):
+           Gene Cactus_Gene Neighborhood_Gene  Nscore_C  Nscore_N  Fraction_C
+1399     484313      292537            140656        16         1        16.0 <- can-rat
+3348     484745      235587             21951        16         1        16.0
+4489  102142048      315131            361577        16         1        16.0
+6774  100365199      408190             66107        16         1        16.0
+1678     482471      298528            171287        15         1        15.0
+1683     609124      688966            499497        15         1        15.0
+3850  102142055      498607            499497        15         1        15.0
+3876  102130956      500797            304650        15         1        15.0
+5478  102132992      235587             21951        15         1        15.0
+395   100856186   102118330         102141219        14         1        14.0
+
+
+
+
+possible cause in solve_global_greedy_chains?
+Scenario:
+  Gene A has two potential partners: B and C
+  
+  Phase 1 (analyze_genes_collect):
+    A-B: N-score = 8, GM = 60
+    A-C: N-score = 5, GM = 85
+    → Selects A-B (higher N-score) 
+  
+  Phase 2 (solve_global_greedy_chains):
+    If both A-B and A-C are in candidate pool:
+    A-B: combined_score based on GM = 60 + ...
+    A-C: combined_score based on GM = 85 + ...
+    → May select A-C (higher GM)  N-score ignored!
+  
+  Your Evaluation:
+    Cactus picked: A-B (N-score = 8)
+    Neighborhood picked: A-C (N-score = 5)
+    Fraction = 8/5 = 1.6 > 1 ← EXPLAINED!
+
+
+Look at find_best_pair_between_species():
+combined_score = our_score + pair_score  # This is GM-based, not N-score!
+return max(pairs, key=lambda x: x['combined_score'])
+This is why you see fraction > 1: The final one-to-one selection prioritizes geometric mean over N-score in the global resolution phase!
+
+
+cases where Nbh has higher GM 
+
+Row 5: Gene 478440
+  Cactus:       N-score=6,  GM=44.09
+  Neighborhood: N-score=5,  GM=94.48  ← Lower N-score but MUCH higher GM!
+  GM_diff: +50.39
+
+Row 10: Gene 481056
+  Cactus:       N-score=5,  GM=44.47
+  Neighborhood: N-score=3,  GM=97.74  ← Lower N-score but MUCH higher GM!
+  GM_diff: +53.27
+
+Row 13: Gene 490847
+  Cactus:       N-score=10, GM=55.78
+  Neighborhood: N-score=9,  GM=86.02  ← Slightly lower N-score but higher GM!
+  GM_diff: +30.24
+
+Row 16: Gene 490977
+  Cactus:       N-score=18, GM=81.66
+  Neighborhood: N-score=17, GM=96.84  ← Slightly lower N-score but higher GM!
+  GM_diff: +15.18
+
+Row 19: Gene 487015
+  Cactus:       N-score=7,  GM=82.26
+  Neighborhood: N-score=5,  GM=97.35  ← Lower N-score but higher GM!
+  GM_diff: +15.10
+
+
+20.12.2025
+----------
+
+Tasks for today:
+- Evaluate new prot-synt results:
+  - [DONE] sum of geomeans
+  - [DONE] n-score
+- Visualize the evaluation results
+- Rename sets and algorithm names
+- FN addressing
+- FP addressing
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+
+Evaluation:
+- the script evaluate_methods_vs_cactus.py was changed for new prot-synt input
+- nscore evaluation:
+  Pairs in cactus_set: 106259
+  Pairs in second_set: 107500
+  TP: 90729, FN: 15530, FP: 16771
+  Recall: 0.854
+  Precision: 0.844
+  F1 Score: 0.849
+  Jaccard Similarity: 0.737
+  Recovered 85.4% of cactus 1:1 orthologs (90729 out of 106259)
+- sum evaluation:
+  Pairs in cactus_set: 106259
+  Pairs in second_set: 107402
+  TP: 90807, FN: 15452, FP: 16595
+  Recall: 0.855
+  Precision: 0.845
+  F1 Score: 0.850
+  Jaccard Similarity: 0.739
+  Recovered 85.5% of cactus 1:1 orthologs (90807 out of 106259)  
+
+ FN for n.score approach:
+ - Number of FN: 15530
+  - per Pair:
+      mus_rat    3550
+      can_mac    2855
+      mac_rat    2357
+      can_rat    2282
+      can_mus    2251
+      mac_mus    2235 
+      -> summed them up = 15530 -> correct
+  - FN are splitted by species pairs and saved in false_negatives_nscore_<species_pair>.tsv
+    -> Query_Protein / Target_Protein   
+- using current logic of classifying FN into no_result and contradictory, there is a mismatch:
+  - FN_no_result        10042
+  - FN_contradictory     1938
+    -> sums up to 11980 != 15530
+    -> what are other 3550???
+- fixed: The FN classification loop was skipping 3,550 pairs (all mus_rat pairs) because of a key mismatch.
+- FN_no_result        12036
+  FN_contradictory     3494
+  - Contradictory FN by species pair:
+    mus_rat    1556
+    can_mac     813
+    can_rat     443
+    can_mus     302
+    mac_rat     265
+    mac_mus     115
+- Cases where Cactus picked better N-score (n-score approach): 972
+
+Top 10 cases where Cactus picked much better ortholog (nscore approach):
+   Pair    A_gene    B_gene    X_gene  Nscore_C  Nscore_N  Fraction_C
+can_rat 106559612    499065    684555      15.0       1.0        15.0
+can_rat    490944     24677    291637      14.0       1.0        14.0
+mac_rat 102136630    116741    252894      14.0       1.0        14.0
+mus_rat     79011    235604    244631      14.0       1.0        14.0
+mus_rat    296684    227789    258831      13.0       1.0        13.0
+can_mac 119871983 102122688 102127979      13.0       1.0        13.0
+can_rat    484406    361577    315131      12.0       1.0        12.0
+mus_rat    300602    258242    258432      12.0       1.0        12.0
+mac_rat 101926228     64310    140940      12.0       1.0        12.0
+can_mus    490944     19064     93724      12.0       1.0        12.0
+
+
+- Cases where Cactus picked better N-score (Max GM approach, previous): 997
+
+- sum approach:
+  - FN: 15452
+  - FN_no_result        11783
+  - FN_contradictory     3669
+  - Contradictory FN by species pair:
+    mus_rat    1648
+    can_mac     872
+    can_rat     456
+    can_mus     294
+    mac_rat     284
+    mac_mus     115
+
+  - cases where Cactus picked better N-score: 1196
+  - Cases where Cactus picked better, by species pair:
+    Pair
+    mus_rat    607
+    can_mac    250
+    can_rat    124
+    can_mus     97
+    mac_rat     91
+    mac_mus     27
+
+
+-> NEXT steps - start with top 10 weird cases nscore approach:
+  - Check following:
+    - Could it be possible that those top 10 cactus-choosing-better cases somehow have reverse order of the N-scores? 
+    - so that it is actually not Nscore_C=16 and Nscore_N=1, but Nscore_C=1 and Nscore_N=16?
+  - look if cactus candidates are in BLAST file for prot-syn 
+    -> need to disprove the suspicion of blast mismatches as the reason for prot-syn not seeing this candidate in the first place
+
+
+  - reduce the input dataset (GTF) for prot-syn to the genes of interest and their neighborhoods, obtained from the nbh dict
+    - run the new prot-syn with this reduced dataset with debugger, document results
+  - test the synteny building steps and candidate-forming functions in prot-syn with cactus candidates 
+    -> need to see what happens there, are they identified and are they making to the list of orthologs?
+    -> need to see when it happens, that they are discarded
+  - test the same steps/functions with prot-syn candidates  
+    -> check if they are really having so little neighbors?
+    -> if so, why do they keep selected then? maybe transitive way?
+  - same for SUM  
+
+
+  21.12.2025
+  ----------
+
+  False Negatives - adressing the cases where cactus picks a candidate with better N-score:
+  Reducing GTF files for testing prot-syn with genes of interest:
+  mkdir results/evaluation/mammalia/vs_prot_syn/
+  cases_cactus_picked_better_n_score.tsv file with those cases
+  taking top 10 those cases
+  script filter_gtf_for_protsyn_test.py
+job 1187
+
+mkdir results/evaluation/mammalia/vs_prot_syn/protsyn_filtered_gtf_top10/
+
+
+
+7.01.2026
+---------
+
+Tasks for today:
+- test prot-syn nscore_approach with some of the FN pairs to see what happens
+
+
+[
+  - Check following:
+    - Could it be possible that those top 10 cactus-choosing-better cases somehow have reverse order of the N-scores? 
+    - so that it is actually not Nscore_C=16 and Nscore_N=1, but Nscore_C=1 and Nscore_N=16?
+  - look if cactus candidates are in BLAST file for prot-syn 
+    -> need to disprove the suspicion of blast mismatches as the reason for prot-syn not seeing this candidate in the first place
+
+
+  - reduce the input dataset (GTF) for prot-syn to the genes of interest and their neighborhoods, obtained from the nbh dict
+    - run the new prot-syn with this reduced dataset with debugger, document results
+  - test the synteny building steps and candidate-forming functions in prot-syn with cactus candidates 
+    -> need to see what happens there, are they identified and are they making to the list of orthologs?
+    -> need to see when it happens, that they are discarded
+  - test the same steps/functions with prot-syn candidates  
+    -> check if they are really having so little neighbors?
+    -> if so, why do they keep selected then? maybe transitive way?
+  - same for SUM  
+]
+
+mkdir results/evaluation/mammalia/vs_prot_syn/protsyn_filtered_gtf_top10/nscore
+
+Result directory for this test run:
+results/evaluation/mammalia/vs_prot_syn/protsyn_filtered_gtf_top10/nscore/
+
+Filtered GTF files of mammals (reduced to top 10 cactus-picked-better-nscore and their neighborhood):
+results/evaluation/mammalia/vs_prot_syn/filtered_gtfs_top10/<species>_filtered.gtf
+
+The script for prot-syn is downloaded from the synteny algorithm repo and uploaded for now to the server:
+- the algorithm script: methods/synteny.py
+- slurm: methods/slurm_mammalian.sh
+
+Now we reproduce the low Nscores that our top10 pairs have.
+We simply execute the algorithm and look if the output for them is indeed with low nscore.
+
+job 1226
+
+we see that in some intermediate results, as for example pairs_original.tsv, 
+there are some Unknown species entries, that are mapped to query, e.g. Canis
+
+Picking some IDs of Unknown species cases to see whom they belong to:
+- from one_to_one_nscore.tsv:
+- Gene1	Protein1	Species1	Gene2	Protein2	Species2
+100686027	XP_038381616.1	Canis_Lupus	101925815	XP_065389647.1	Unknown species
+100686027	XP_038381616.1	Canis_Lupus	101925815	XP_065389647.1	Macaca
+101925815	XP_065389647.1	Unknown species	101925815	XP_065389647.1	Macaca
+101925815	XP_065389647.1	Unknown species	100686027	XP_038381616.1	Unknown species
+100686027	XP_038381616.1	Canis_Lupus	100686027	XP_038381616.1	Unknown species
+- Genes involved: 100686027, 101925815
+- Found out that the entries are duplicated:
+  First we see 100686027 Canis connected to 101925815 Unknown species.
+  Right after that we have 100686027 Canis connected to same 101925815 Macaca.
+  Same pattern can be seen further. 
+  The pairs 100686027 can - 101925815 mac can be found in original one_to_one_nscore.tsv
+  as normal can-mac pair.
+  So the issue could be in my filtered GTF files.
+
+  101925815 mac is not found in filtered GTF for macaca. 
+  100686027 can is not found as well.
+  Both are not found in cases_cactus_picked_better_n_score.tsv
+  Both are not found in test_genes_top10.txt
+
+
+- Another one case:
+606936	XP_038381624.1	Canis_Lupus	307235	NP_001385583.1	Unknown species
+307235	NP_001385583.1	Unknown species	68731	NP_954667.1	Mus
+307235	NP_001385583.1	Unknown species	68731	NP_954667.1	Unknown species
+606936	XP_038381624.1	Canis_Lupus	68731	NP_954667.1	Mus
+606936	XP_038381624.1	Canis_Lupus	68731	NP_954667.1	Unknown species
+68731	NP_954667.1	Mus	68731	NP_954667.1	Unknown species
+- Genes involved: 606936 (can), 307235, 68731 (mus)
+
+For now on hold
+
+
+8.01.2026
+---------
+
+Meeting notes:
+- Make the script for heatmap robust
+- Redo all plots, heapmaps, evaluation with new nscore and sum approach
+- ASK what exactly was changed in nscore approach
+- Rename the sets
+- ASK about readme for Tree algorithm, where all tree modes are explained 
+- Make sure all namings of the Tree modes tell exactly what they are based on
+- Adjustments for FP, see issue
+
+
+9.01.2026
+---------
+
+Tasks for today:
+- Tree algorithm:
+  - [DONE] Check the notes regarding the tree mods renaming
+  - check the server files if there is a readme or something
+  - [DONE] Decide how to rename the mods
+- [DONE] Rerun evaluation with the new evaluation script and splitting FN and FP, change the paths and filenames:
+  - [DONE] BUSCO vs Compleasm
+  - [DONE] Cactus vs BUSComp
+  - [DONE] Cactus vs Tree all 3 mods
+  - [DONE] Cactus vs PTP
+  - [DONE] Cactus vs OrthoFinder
+  - [DONE] CactBUSComp vs prot-syn all 2 mods
+  - [DONE] CactBUSComp vs Tree all 3 mods
+  - [DONE] CactBUSComp vs PTP
+  - [DONE] CactBUSComp vs OrthoFinder
+  - [DONE] Prot-syn n-score vs BUSComp
+  - [DONE] Prot-syn sum vs BUSComp
+  - [DONE] BUSComp vs Tree all 3 mods, PTP and orthofinder
+- [DONE] Make the script for heatmap robust
+- [DONE] Visualize metrics, check the notes regarding heatmaps
+- Calculate N-scores for new nscore approach and sum, visualize the fraction
+
+
+- Decide what to do with ortholog_evaluation/ dir
+
+
+
+mv gene_relationship_classifier/methods/classify_alignments_for_fp.* methods/
+mv gene_relationship_classifier/methods/get_alignments_fp.sh methods/
+mv gene_relationship_classifier/methods/parse_map_for_pident_overlap.* methods/
+mv gene_relationship_classifier/methods/plot_pi_overlap_depth_score.* methods/
+
+
+Standard Tree approach was remamed to max_score.
+
+
+Script evaluate_methods_vs_cactus.py was adjusted:
+- new script: evaluate_methods_vs_cactus_v2.py
+- instead of getting the species direction fron cactus, it will be extracted from a list of tuples definded in the beginning
+- metrics are also saved as tsv for easier visualization
+- variables cactus_ and second_ are replaced with ref_ and test_ 
+- paths for all outputs are changed for the new FN and FP per-species splitting
+- Cactus vs prot_syn (nscore):
+  - job 1227
+  - results are at results/evaluaiton/mammalia/vs_prot_syn/nscore_approach/
+- Cactus vs prot_syn (sum):
+  - job 1228
+  - results are at results/evaluaiton/mammalia/vs_prot_syn/sum_approach/
+- Cactus vs Tree (majority):
+  - Need to uncomment some lines for Tree in main() (line 437 and 443)
+    And comment line 435 and 441
+  - job 1229
+  - results/evaluation/mammalia/vs_tree/majority/
+- Cactus vs Tree (max_score):
+  - job 1230
+  - results/evaluation/mammalia/vs_tree/max_score/
+- Cactus vs Tree (whitelist):
+  - job 1231
+  - results/evaluation/mammalia/vs_tree/whitelist/
+- Cactus vs PTP:
+  - job 1232
+  - results/evaluation/mammalia/vs_ptp/
+- Cactus vs OrthoFinder:
+  - job 1234
+  - results/evaluation/mammalia/vs_orthofinder/
+
+
+Script evaluate_busco_vs_compleasm.py was changed:
+- new script: evaluate_busco_vs_compleasm_v2.py
+- metrics are also saved as tsv for easier visualization
+- variables second_ are replaced with test_ 
+- paths for all outputs are changed for the new FN and FP per-species splitting
+- BUSComp set has fixed direction Query-Target, instead of just saving a union set as tsv
+  It is possible that direction was swapped originally, I will see if the metrics of evaluation vs new BUSComp change
+- job 1235
+- results are in /storage/EasyVectorOmics/busco/results/mammalia/evaluation/
+
+
+--- Tomorrow: change the cactus vs buscomp script and Evaluate, compare with old metrics, complete the rest
+
+
+10.01.2026
+----------
+
+To Do list from 9.01.2026...
+
+mv results/evaluation/mammalia/vs_b_set results/evaluation/mammalia/vs_buscomp_set
+
+mv gene_relationship_classifier/methods/evaluate_cactus_vs_b_set.sh gene_relationship_classifier/methods/evaluate_cactus_vs_buscomp.sh
+
+
+Script evaluate_cactus_vs_b_set.py was changed:
+- new script evaluate_cactus_vs_buscomp_v2.py
+- evaluating cactus against BUSComp splitted using new fixed direction logic
+- Renamed BC and B-set to CactBUSComp and BUSComp
+- metrics are also saved as tsv for easier visualization
+- variables second_ are replaced with test_ 
+- paths for all outputs are changed for the new FN and FP per-species splitting
+- CactBUSComp set has fixed direction Query-Target, instead of just saving a union set as tsv
+- job 1236
+- results are at results/evaluation/mammalia/vs_buscomp_set/
+- Metrics are slightly dropped
+
+
+mv results/evaluation/mammalia/all_vs_bc_set results/evaluation/mammalia/all_vs_cactbuscomp
+mkdir results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/
+mv results/evaluation/mammalia/all_vs_cactbuscomp/vs_tree/standard results/evaluation/mammalia/all_vs_cactbuscomp/vs_tree/max_score
+mv gene_relationship_classifier/methods/evaluate_methods_vs_bc_set.sh gene_relationship_classifier/methods/evaluate_methods_vs_cactbuscomp.sh
+mkdir results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/nscore_approach
+mkdir results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/sum_approach
+mv results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/*.tsv results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/nscore_approach/
+mv results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/*.txt results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/nscore_approach/
+
+
+Script evaluate_methods_vs_bc_set.py was changed:
+- new script evaluate_methods_vs_cactbuscomp_v2.py
+- evaluating methods against CactBUSComp splitted using new fixed direction logic
+- metrics are also saved as tsv for easier visualization
+- CactBUSComp vs prot-syn (nscore):
+  - job 1238
+  - results are at: results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/nscore_approach/
+- CactBUSComp vs prot-syn (sum):
+  - job 1239
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/sum_approach/
+- CactBUSComp vs tree (majority):
+  - job 1240
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_tree/majority/
+- CactBUSComp vs tree (max_score):
+  - job 1241
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_tree/max_score/ 
+- CactBUSComp vs tree (whitelist):
+  - job 1242
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_tree/whitelist/ 
+- CactBUSComp vs ptp:
+  - job 1243
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_ptp/
+- CactBUSComp vs orthofinder:
+  - job 1244
+  - results/evaluation/mammalia/all_vs_cactbuscomp/vs_orthofinder/
+
+mkdir results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/
+mkdir results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/nscore_approach/
+mkdir results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/sum_approach/
+mv results/evaluation/mammalia/vs_buscomp_set/vs_tree/standard results/evaluation/mammalia/vs_buscomp_set/vs_tree/max_score
+
+
+mv gene_relationship_classifier/methods/evaluate_methods_vs_b_set.sh gene_relationship_classifier/methods/evaluate_methods_vs_buscomp.sh
+
+
+
+Script evaluate_methods_vs_b_set.py was changed:
+- new script evaluate_methods_vs_buscomp_v2.py
+- evaluating methods against BUSComp splitted using new fixed direction logic
+- metrics are also saved as tsv for easier visualization
+- BUSComp vs prot-syn (nscore):
+  - job 1245
+  - results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/nscore_approach/
+- BUSComp vs prot-syn (sum):
+  - job 1246
+  - results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/sum_approach/
+- BUSComp vs tree (majority):
+  - job 1247
+  - results/evaluation/mammalia/vs_buscomp_set/vs_tree/majority/
+- BUSComp vs tree (max_score): 
+  - job 1248
+  - results/evaluation/mammalia/vs_buscomp_set/vs_tree/max_score/
+- BUSComp vs tree (whitelist):
+  - job 1249
+  - results/evaluation/mammalia/vs_buscomp_set/vs_tree/whitelist/
+- BUSComp vs ptp:
+  - job 1250
+  - results/evaluation/mammalia/vs_buscomp_set/vs_ptp/
+- BUSComp vs orthofinder:
+  - job 1251
+  - results/evaluation/mammalia/vs_buscomp_set/vs_orthofinder/
+
+
+The script visualize_evaluation.py was changed:
+- new script: visualize_evaluation_metrics_v2.py
+- robust approach
+- metrics are extracted from tsv files
+- job 1254
+- heatmap is at results/evaluation/mammalia/metrics_methods_vs_reference_sets_v2.png
+
+
+The script evaluate_methods_vs_each_other_and_plot.py was changed:
+- new script: evaluate_methods_vs_each_other_and_plot_v2.py 
+- added reference sets
+- job 1257
+- results are at: results/evaluation/mammalia/all_vs_all/
+
+
+--- Tomorrow: 
+- find actual FN script, check if its correct, Plot fraction for nscore and summ approach
+- Check all FP stuff, prepare for meeting on monday
+
+
+11.01.2026
+----------
+
+Tasks for today:
+- [DONE] !!! Jaccard similarity of BUSCO and Compleasm!!!!!
+- [DONE] FN with new prot-syn data:
+  - [DONE] Find and check FN script
+  - [DONE] Plot fraction for prot-syn 2 mods
+- [DONE] Look at FP stuff
+- [DONE] Prepare input for the meeting
+
+
+mkdir results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_positives/old_results/
+cd results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_positives/
+mv alignment_classification_* old_results/
+mv cactus_scores_* old_results/
+mv plots/ old_results/
+
+
+FP
+
+Among FP identify those genes whose targets are not found by Cactus (C_no_result):
+- script find_c_no_results_fp.py
+- results are results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_positives/<species_pair>find_c_no_results.tsv
+- unittest script is on a local machine called test_find_c_no_results_fp.py
+- job 1259
+Found 592 C_no_result cases for false_positives_can_mac
+Found 1204 C_no_result cases for false_positives_can_rat
+Found 1107 C_no_result cases for false_positives_can_mus
+Found 1188 C_no_result cases for false_positives_mac_rat
+Found 1076 C_no_result cases for false_positives_mac_mus
+Found 893 C_no_result cases for false_positives_rat_mus
+
+
+Adding BUSCO vs Compleasm to Jaccard heatmap:
+- script evaluate_methods_vs_each_other_and_plot_v2.py
+- new output has suffix _1, so the original plot is not changed
+- need to rename if everything goes right
+- job 1260 
+- BUSCO vs Compleasm creates a lot of white spaces in the heatmap
+
+idea to put the comparison as a separate heapmap below
+- script evaluate_methods_vs_each_other_and_plot_v3.py
+- new output has suffix _v3
+- job 1262
+- results/evaluation/mammalia/all_vs_all/combined_jaccard_heatmap_v3.png
+
+
+FN
+
+mkdir results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_negatives/
+mkdir results/evaluation/mammalia/vs_prot_syn/sum_approach/disagreement_investigation/false_negatives/
+
+Classifying of pairs into ps_no_result and ps_contradictory with a separate script:
+- new script find_ps_no_results_and_contradictory_v2.py
+- job 1263 can-mac
+  - PS-no-results    2855
+  - !!! no contradictory
+- job 1264 can-rat
+  - also no contradictory
+- job 1266 can-mus
+  - also no contradictory
+
+
+Trying to adjust the old script neighborhood_score_cactus.py 
+  - new script neighborhood_score_cactus_fn.py
+  - cleaned the script,
+  - using original function for counting nscore, from prot-syn
+  - using dictionary geometric_mean.pkl  
+  - removed GM for now
+  - removed splitting into species, since already implemented
+  - previous logic of FN classification
+  - job 1268 (nscore)
+    - statistics are at slurm_outputs/neighborhood_score_cactus1268.out 
+    - results are results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_negatives/
+    - still weird cases in fraction
+  - job 1269 (sum)
+    - --- Processing can_mac ---
+      Loaded 2894 false negatives
+      Could not compute scores for 191 pairs
+
+
+mkdir gene_relationship_classifier/plots/mammals/evaluation/prot_syn_nscore
+mkdir gene_relationship_classifier/plots/mammals/evaluation/prot_syn_sum
+
+
+--- tomorrow: 
+fn: look at Could not compute scores for 191 pairs for prot-syn sum approach
+implementing FP, 
+implement other tasks for FP and FN (distances, nbh lengths,) 
+calculate cactussupportscore for FN and plot
+
+
+    
+12.01.2026
+----------
+
+Meeting notes:
+- Discussion and limitations regarding the FN and prot-syn:
+  - first part (synteny) is correct, possible issue in the second part (1:1 split)
+- Evaluate intermediate prot-syn results (see GitLab)
+- Synteny linear plots check and finish
+- For tree alg. mods: see and cite Jonathans poster and thesis (Section 3.7.1)
+- Jonathan mentions harmonic mean, check, it its calculated by the algorithm itself - mention harmonic mean
+if doesnt - then just call GRASS score
+- take into account bidirectional comparison with prot-syn, so net only just gene1 but also Gene2
+- idea for no-result approach: sets, join
+- Check refined pipeline for the FP
+- HAL is 0-based, BED is 1-based, keep that in mind while dealing with coordinates and length
+- to convert 1-based in 0-based see slack:
+For HalSnps just make sure that when you take the GTF coordinate (1 based), the coordinate that you are looking for in Hal should be 0 based, you can convert usgin:
+start0 = start_1based - 1
+length = end_1based - start_1based + 1
+Where start_1based is your GTF coordinate
+- Check if in other methods is also bidirectional
+- evaluate prot-syn vs BUSCOMP as ref
+- redo all evaluation once again but without species splitting and adjusted all_fn and fp
+
+
+
+Tasks for today:
+- [DONE] check evaluation script for bidirectional logic
+- fix fn script with bidirectional logic 
+- [DONE] implement c_no_results with correct bidirectional logic
+
+
+
+Script evaluate_methods_vs_cactus_v2.py:
+- already bidirectional check, no need to change that
+- but need to remove per-species splitting of FN and FP, keeping all them in one, but with extended gene IDs and species names
+- columns are renamed to gene1 gene2 etc
+- job 1272 (nscore)
+- results are at results/evaluation/mammalia/vs_prot_syn/nscore_approach/all_false_negatives_nscore.tsv
+- job 1273 (sum)
+- results are at results/evaluation/mammalia/vs_prot_syn/sum_approach/all_false_negatives_sum.tsv
+
+
+FP
+
+Fixing find_c_no_results_fp.py:
+- not only check for Gene1 but also for Gene2, and check in both Query in Target
+- this way we dont miss any gene
+- job 1276 (nscore)
+- results: results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_positives/all_C_no_results.tsv
+- 3580 C_no_result
+- job 1277 (sum)
+- results: results/evaluation/mammalia/vs_prot_syn/sum_approach/disagreement_investigation/false_positives/all_C_no_results.tsv
+- 3548 C_no_result
+
+FN
+
+Script neighborhood_score_cactus_fn.py:
+- fixing the logic of FN classification based on bidirectionality of prot-syn
+- Adding FN_Category for easy filtering for analysis:
+    both_contradictory: Both genes have different partners - most interesting cases
+    gene1_only: Only Gene1 has contradictory assignment
+    gene2_only: Only Gene2 has contradictory assignment
+    both_no_result: Neither gene found in prot-syn
+  Idea for the output structure (with abstract IDs):
+  Gene1 | Gene2 | PS_Partner_Gene1 | PS_Partner_Prot1 | PS_Partner_Gene2 | PS_Partner_Prot2 | Gene1_Status | Gene2_Status | FN_Category
+  1001  | 20001 | 3333             | XP_123           | 2222             | XP_456           | contradictory| contradictory| both_contradictory
+  2345  | 54321 | 0001             | XP_789           | 5555             | XP_012           | contradictory| contradictory| both_contradictory
+  1002  | 20002 | -                | -                | 6666             | XP_345           | no_result    | contradictory| gene2_only  
+- plotting all 4 plots in one pic
+- new script neighborhood_score_cactus_fn_v2.py
+- job 1279  
+
+What was done (12.01): Fixed FN and FP classification logic based on bidirectionality of prot-syn; FP: C_no_results; FN: prot-syn_no_results and contradictory
+Where: The scripts are in gene_relationship_classifier repository, on cactus-ref-free branch, in methods/. The plots are in gene_relationship_classifier repository, on cactus-ref-free branch, in plots/. Intermediate results and tables on the server (/storage/EasyVectorOmics/cactus/results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/)
+
+Problem: FN: all cases are no-results, no contradictory, this is unexpected need to checkmtomorrow once again the script
+
+
+13.01.2026
+----------
+
+Meeting notes:
+- check of the nscore calculation, some cases from anomaly do have nscores, see slack 
+- simplify evaluation - we dont need order in the output, just save as it is
+- reason for ps-no-genes: there is a filtering step in prot-syn where:
+  scaffold is taken from gtf
+  if this scaffold doesnt have at leat 3 other genes -> gene is discarded
+- cases where prot-syn candidate has 0 nscore could be because of Transitivity  
+  сheck new tested results one_to_one_nscore.tsv and sum (this time no transitivity is involved) 
+  - evaluate
+  - FN nscores 
+- From FN anomaly take Cactus_Target_Gene and check in files sent
+- For pairs Cactus finds - look at unique genes
+
+Tasks for today:
+- simplify evaluation - discard the specific order of the output, change the scripts for FN and FP to handle different Gene1 and Gene2 order
+- [DONE] Check anomaly pairs in intermediate prot-syn files
+- check sent files
+
+
+moved temporarily old tables and plots on old_results in false_negatives 
+
+FN: fixing the no-contradictory issue:
+- script neighborhood_score_cactus_fn_v2.py
+- possible case: species name mismatch
+- fixed division by zero error
+- optimized the script with indexing, so that it doesnt take long
+- removed relationship_dict building part since already have a dict with the structure needed
+- added reporting and saving cases where prot-syn has nscore=0, as they are not expected at all (anomalous)
+- job 1283 (nscore)
+  - results are in results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_negatives
+  - statistics are at slurm_outputs/neighborhood_score_cactus_fn_v2_1283.out
+  - !!! found anomalous cases:
+    Out of your 13,038 contradictory FN pairs (8,029 + 2,682 + 2,327), about 602 (~4.6%) involve prot-syn picking a candidate with zero neighborhood overlap.
+    Possible bugs in prot-syn:
+    Falling back to sequence similarity when no syntenic candidate exists
+    Having a bug in candidate filtering
+    Picking candidates based on incomplete neighborhood data
+    anomalous_protsyn_nscore_zero.tsv contains all the details for these 602 unique problematic cases
+  - !!! there are still cases where cactus picks a candidate with better nscore: 4566 
+- job 1284 (sum)
+  - anomalous cases as well
+  - cases where cactus picks better nscore as well
+
+
+mkdir results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity
+replaced files in synteny_algorithm/mammalian/results/
+mkdir material/sex_experiment/test_protsyn_notransitivity/ - nbh dict, gene dict and geomean
+mkdir results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity
+mkdir results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives
+
+
+- cases where prot-syn candidate has 0 nscore could be because of Transitivity  
+  сheck new tested results one_to_one_nscore.tsv and sum (this time no transitivity is involved) 
+- evaluation: 
+  - job 1290 (nscore)
+  - results is at results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/
+  - Pairs in ref_set: 106259
+    Pairs in test_set: 101191
+
+    TP: 90087, FN: 16172, FP: 11104
+    Recall: 0.848
+    Precision: 0.890
+    F1 Score: 0.869
+    Jaccard Similarity: 0.768
+    Recovered 84.8% of ref 1:1 orthologs (90087 out of 106259)
+
+- N-scores calculation:
+  - job 1291
+  - 52 anomalous cases
+  - cactus picked better cases: 1287
+  XP_038413330.1	XP_063142549.1 <- this shouldnt appear in anomaly
+    -> it doesnt appear
+
+Taking genes manually:
+
+From anomaly table:
+Pair	Protein1	Protein2	Gene1	Gene2	Cactus_Target_Gene	Cactus_Target_Protein	ProtSyn_Partner_Gene	ProtSyn_Partner_Protein	Species1	Species2	Anomaly_Type	Nscore_Cactus	Nscore_ProtSyn
+can_mus	XP_038442578.1	NP_001078975.1	102156856	236852	236852	NP_001078975.1	71967	NP_082301.1	Canis lupus familiaris	Mus musculus	both_ps_nscore_zero	5.0	0.0
+
+
+Checking FN gene1: 102156856 (can), searching for mus :
+  - in cactus: 
+    102156856	236852	XP_038442578.1	NP_001078975.1	1194	1254	77.55085074567856	77.58336849816332	155.13421924384187
+  - in pairs_original.tsv
+    102156856	Canis_Lupus	XP_038442578.1	236852	Mus	NP_001078975.1	5	62.7867539421193
+    ^FN pair, appears in anomaly table as well
+    17140	Mus	NP_064676.2	102156856	Canis_Lupus	XP_038442578.1	5	2.461974014569955
+  - in pairs_transitive_local.tsv
+    102156856	Canis_Lupus	XP_038442578.1	236852	Mus	NP_001078975.1	5	62.7867539421193	0.627867539421193
+    ^FN pair, appears in anomaly table as well
+    17140	Mus	NP_064676.2	102156856	Canis_Lupus	XP_038442578.1	5	2.461974014569955	0.02461974014569955
+  - in global_pairs_nscore.tsv
+    102156856	XP_038442578.1	Canis_Lupus	71967	NP_082301.1	Mus
+  - in pairs_unique.tsv 
+    no pairs  
+  - in one_to_one_nscore.tsv
+    102156856	XP_038442578.1	Canis_Lupus	71967	NP_082301.1	Mus
+    -> gene 71967 appears in anomaly as PS partner gene
+  -> so we see FN pair before 1:1 step, after that mus gene is discarded and instead a 71967 candidate is chosen 
+  -> the pair 102156856 - 71967 doesn't appear in tables of prot-syn with calculated nscores
+      71967 is paired with different can genes:
+      100856762	Canis_Lupus	XP_038442413.1	71967	Mus	NP_082301.1	1	58.42655106006572
+      100687581	Canis_Lupus	XP_038442414.1	71967	Mus	NP_082301.1	1	61.28039272843545
+  -> so maybe thats why it has nscore 0?
+
+
+Checking FN gene2: 236852 (mus), searching for can:
+  - in cactus:
+    102156856	236852	XP_038442578.1	NP_001078975.1	1194	1254	77.55085074567856	77.58336849816332	155.13421924384187
+  - in pairs_original.tsv
+    102156856	Canis_Lupus	XP_038442578.1	236852	Mus	NP_001078975.1	5	62.7867539421193
+    ^FN pair, appears in anomaly table as well
+  - in pairs_transitive_local.tsv 
+    102156856	Canis_Lupus	XP_038442578.1	236852	Mus	NP_001078975.1	5	62.7867539421193	0.627867539421193
+    ^FN pair, appears in anomaly table as well
+  - in global_pairs_nscore.tsv
+    119868339	XP_038442575.1	Canis_Lupus	236852	NP_001078975.1	Mus
+  - in pairs_unique.tsv 
+    no pairs  
+  - in one_to_one_nscore.tsv
+    119868339	XP_038442575.1	Canis_Lupus	236852	NP_001078975.1	Mus
+!!!  ^gene 119868339 isnt appearing in anomaly as alternative to 236852, although the FN pair 102156856-236852 is classified as both_ps_nscore_zero
+  -> again, at first we get FN pair, but then discarded and replaced with another candidate
+
+
+Checking 71967 (mus), searching for can:
+- anomalous table:
+  can_mus	XP_038442414.1	NP_082301.1	100687581	71967	100687581	XP_038442414.1	102156856	XP_038442578.1	Canis lupus familiaris	Mus musculus	gene2_ps_nscore_zero	1.0	0.0
+  ^appears as FN to 100687581 
+  can_mus	XP_038442578.1	NP_001078975.1	102156856	236852	236852	NP_001078975.1	71967	NP_082301.1	Canis lupus familiaris	Mus musculus	both_ps_nscore_zero	5.0	0.0
+  ^appears as prot-syn candidate for 102156856
+- False Negatives:
+  XP_038442414.1	NP_082301.1	100687581	71967	Canis lupus familiaris	Mus musculus	can_mus	False
+- cactus:
+  100687581	71967	XP_038442414.1	NP_082301.1	1234	1294	70.63387974357036	70.63387974357036	141.26775948714072
+- pairs_original.tsv
+  100856762	Canis_Lupus	XP_038442413.1	71967	Mus	NP_082301.1	1	58.42655106006572
+  100687581	Canis_Lupus	XP_038442414.1	71967	Mus	NP_082301.1	1	61.28039272843545
+  ^FN pair
+- in pairs_transitive_local.tsv 
+  100856762	Canis_Lupus	XP_038442413.1	71967	Mus	NP_082301.1	1	58.42655106006572	0.5842655106006572
+  100687581	Canis_Lupus	XP_038442414.1	71967	Mus	NP_082301.1	1	61.28039272843545	0.6128039272843545
+  ^FN pair
+- in one_to_one_nscore.tsv
+  102156856	XP_038442578.1	Canis_Lupus	71967	NP_082301.1	Mus  
+  - alr. checked that
+
+So for now we have following situation:
+   Canis 102156856  119868339  100687581
+  FN(cactus) |   X (prot-syn) / FN(cactus)
+   Mus   236852      71967
+
+Checking 119868339 (can), searching for mus:
+- anomaly table:
+  can_rat	NP_001003116.1	NP_001395765.1	403710	293832	403710	NP_001003116.1	119868339	XP_038442575.1	Canis lupus familiaris	Rattus norvegicus	gene2_ps_nscore_zero	0.0	0.0
+  ^appears for different species, nothing for mus
+- FN:
+  nothing 
+- Cactus:
+  nothing
+- pairs_original
+  nothing for mus, appears 3 times for macaca       
+- pairs_transitive_local
+  same as Original
+- one_to_one_nscore
+  119868339	XP_038442575.1	Canis_Lupus	236852	NP_001078975.1	Mus
+  -> so it gets assigned somewhere during 1:1 step in proit-syn  
+
+-> Although FN pairs are assigned during the synteny step in prot-syn, the candidates are still discarded later during 1:1 step, and something else is assigned
+-> need to also check chromosome-discarded files and anomaly cases
+
+
+Identified issue with the anomaly table
+- in both_ps_nscore_zero cases, the script only records the Gene1 alternative and silently drops the Gene2 alternative
+- fixed function save_protsyn_zero_nscore_cases()
+- made outputs clearer
+- script neighborhood_score_cactus_fn_v2.py
+- added nscores for protsyn candidates for boths Gene1 and Gene2 from FN for anomaly
+- new columns for anomaly nscore 0 cases:
+Pair	Protein1	Protein2	Gene1	Gene2	Species1	Species2	Nscore_Cactus	ProtSyn_Partner_Gene1	ProtSyn_Partner_Protein1	Nscore_ProtSyn_Gene1	ProtSyn_Partner_Gene2	ProtSyn_Partner_Protein2	Nscore_ProtSyn_Gene2	Anomaly_Type
+can_rat	XP_038413330.1	XP_063142549.1	482413	500037	Canis lupus familiaris	Rattus norvegicus	2.0	297480	XP_038963306.1	0.0			gene1_ps_nscore_zero
+- Redoing the script
+- original approach:
+  - nscore: 
+    - job 1294
+    - summary: slurm_outputs/neighborhood_score_cactus_fn_v2_1294.out
+    - results: results/evaluation/mammalia/vs_prot_syn/nscore_approach/disagreement_investigation/false_negatives/ 
+
+
+tomorrow:
+- evaluate no transitiv sum
+- fn no transitiv sum
+- check sent files
+- simplify evaluation - discard the specific order of the output, change the scripts for FN and FP to handle different Gene1 and Gene2 order
+
+
+14.01.2026
+----------
+
+Tasks for today:
+- [DONE] evaluate no transitiv sum
+- [DONE] fn no transitiv sum
+- [DONE] Change logic for FN output tables, to avoid confusion
+
+
+NEW FN LOGIC 
+- see description in fn_new_classification_logic.txt on local machine
+- new script neighborhood_score_cactus_fn_v3.py
+- job 1301 (nscore)
+- results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/false_negatives_with_ids.tsv
+
+No transitivity sum:
+- evaluaiton job 1297
+
+uploaded excluded_genes files to material/sex_experiment/
+
+Checking sent files of genes that were discarded during chr filtering in prot-syn:
+- Checking for our anomaly case:
+Pair	Protein1	Protein2	Gene1	Gene2	Species1	Species2	Nscore_Cactus	ProtSyn_Partner_Gene1	ProtSyn_Partner_Protein1	Nscore_ProtSyn_Gene1	ProtSyn_Partner_Gene2	ProtSyn_Partner_Protein2	Nscore_ProtSyn_Gene2	Anomaly_Type
+can_mus	XP_038442578.1	NP_001078975.1	102156856	236852	Canis lupus familiaris	Mus musculus	5.0	71967	NP_082301.1	0.0	119868339	XP_038442575.1	0.0	both_ps_nscore_zero
+- Checking 102156856 (can) in excluded_genes_Canis_Lupus.tsv
+  - not found there
+- Checking 236852 (mus) in excluded_genes_Mus.tsv
+  - not found there
+  
+
+15.01.2026
+-----------
+
+Tasks for today:
+- [DONE] unit test for new FN
+- [DONE] sum FN
+- [DONE] Script that takes FN IDs and searches for them in the excluded file. We need to see if this is the reason of them missing in prot-syn.
+- [DONE] cases cactus picked better, understand the table/correct
+
+
+mkdir results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_positives
+
+Tests for the neighborhood_score_cactus_fn_v3.py are on a local machine
+
+FN v3 for prot-syn sum, no transitivity approach:
+- job 1303
+
+Script that takes FN IDs and searches for them in the excluded file:
+- excluded-files are in material/sex_experiment/excluded_genes_<species>.tsv
+- script check_in_excluded_fn.py
+- adjust paths parameters in check_in_excluded_fn.sh
+- job 1304
+- results are in results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/fn_genes_found_in_excluded.tsv 
+- summary is in same dir, in fn_genes_found_in_excluded_summary.tsv
+species_key	total_fn_rows	excluded_hits
+dog	7627	107
+mouse	8058	9
+rat	8496	0
+unknown	8163	0
+- unknown belongs to macaca, table of excluded for macaca wasnt provided since there were no excluded for macaca
+- unittest is on a local machine
+
+
+
+16.01.2026
+----------
+
+Tasks for today:
+- FN
+  - [DONE] relative neighborhood score
+  - [DONE] pair-level report and plots  
+- [DONE] evaluation readme
+
+
+Moved all old and irrelevant results to corresponding old_results/ for each directory
+Moved all previous prot-syn results to with_transitivity/
+
+FN - N-score report and distributions:
+- neighborhood_score_cactus_fn_v4.py
+- reports and outputs now are on 2 levels:
+    - gene-level (each row correspond to a single gene from a FN pair)
+    - and pair level (each row correspond to a FN pair)
+    - we plot and output boths level
+- Added calculation of relative N-scores: 
+  - We not always have 20 genes in a nbh, on the chr edges the nbh could be less
+  - we calculate theoretical max for each gene (gene-level analysis!): # of genes in the neighborhood (usually 20)
+  - relative nscore = actual nscore / theoretical max
+  - we expect few genes and report only those and save separately for future possible analyses  
+- job 1307
+  - statistics are at slurm_outputs/neighborhood_score_cactus_fn_v4_1307.out
+Theoretical max window: 20
+Affected gene rows (theoretical max < 20): 1505/32344 (4.65%)
+Affected unique genes: 795
+Affected unique FN pairs: 1373
+
+
+Written readme with summary of all evaluation steps
+gene_relationship_classifier/evaluation_readme.txt
+
+
+17.01.2026, 18.01.2026 and 19.01.2026
+-------------------------------------
+
+Tasks for today:
+- [DONE] Implement chromosomal distances
+- [DONE] Implement neighborhood length for both FN and FP
+FN:
+  - [DONE] Chromosomal Distances FN contradictory
+  - [DONE] Neiborhood length FN
+  - [DONE] FN steps for sum no trans
+  - [DONE] change path for FN new file in excluded slurm script!!
+- FP: 
+[DONE] script and explanation
+redo split of pairs with new FP from thursday (sum), 
+CactusSupportScore calculation for sum no trans
+CactusSupportScore for FN + plot
+neighborhood length for FP
+- Heatmaps, evaluation:
+  - [DONE] redo heatmaps with protsyn no trans nscore and sum (metrics of others shouldnt change)
+  - [DONE] change paths for evaluation scripts for prot-syn for test_no_transitivity!!!
+
+
+
+
+Simplified evaluate methods vs cactus:
+- now there is no strict species direction in the output table, so we dont ensure rat-mus, we keep rat-mus and mus-rat
+- this way the script is Simplified
+- testing with the protsyn nscore, the files have simple_ to distinct them from the previous
+- new script has temporary name _simple.py, will be renamed later
+- job 1309
+- metrics are same
+-> FOR NOW old version will be kept, because no time
+-> for the methods involved in deeper investigation of FN and FP planned be used this simplified version
+-> for other methosd for now old version will be kept, later if enough time, will be also changed
+
+
+Rerun BUSComp vs new prot-syn:
+  - prot-syn nscore no transitivity metrics TSV file: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/cactus_prot_syn_nscore_metrics.tsv
+  - prot-syn sum no transitivity metrics TSV file: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/cactus_prot_syn_sum_metrics.tsv
+  - BUSComp-set: /storage/EasyVectorOmics/busco/results/mammalia/evaluation/BUSComp_set.tsv
+ 
+  - the script evaluate_cactus_vs_buscomp_v2.py was changed
+  - doesnt save mapped FN and FP and species-pair tables, because there are a lot of unmapped genes
+  - for now just saving FN and FP as a table with Protein IDs and flag if found in the map
+    - for FN analysis of prot-syn vs BUSComp can identify species with the annotations
+  - job 1311 (nscore)
+    - FN are here: results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/nscore_approach/test_no_transitivity/all_false_negatives_prot_syn_nscore.tsv 
+  - job 1312 (sum)
+    - FN are here: results/evaluation/mammalia/vs_buscomp_set/vs_prot_syn/sum_approach/test_no_transitivity/all_false_negatives_sum.tsv
+
+RERUN PROTSYN NSCORE TO TRANS VS CACTUS!!! was rewritten acidentally:
+- job 1313
+  - results are in results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/
+
+
+Rerun CactBUSComp vs new prot-syn:
+  - job 1314 (nscore)
+    - result metrics: results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/nscore_approach/test_no_transitivity/CactBUSComp_prot_syn_nscore_metrics.tsv
+  - job 1315 (sum)
+    - result metrics: results/evaluation/mammalia/all_vs_cactbuscomp/vs_prot_syn/sum_approach/test_no_transitivity/CactBUSComp_prot_syn_sum_metrics.tsv
+  - !!! Other methods have previous FN and FP tables that have unmapped, nan etc, they are kept so for now since not required for this analysis
+
+Rerun heatmap for references metrics:
+-script visualize_evaluation_metrics_v2.py
+- paths for prot-syn-related are changed 
+- job 1316 
+- Saved figure to results/evaluation/mammalia/metrics_methods_vs_reference_sets_v2.png
+
+Rerun Jaccard similarirty heatmap all vs all:
+- script evaluate_methods_vs_each_other_and_plot_v3.py
+- paths for prot-syn-related are changed
+- job 1317
+- results/evaluation/mammalia/all_vs_all/combined_jaccard_heatmap_v3.png
+
+New heatmaps are copied to the repo.
+
+Doing FN nscore analysis steps for prot-syn sum, no trans:
+- working directory: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/
+- FN sum: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/all_false_negatives_sum.tsv 
+- script neighborhood_score_cactus_fn_v4.py
+- job 1318
+- plots (pair-level): fn_distributions_2x2_pair_level.png
+- statistics: slurm_outputs/neighborhood_score_cactus_fn_v4_1318.out 
+
+
+max neighborhood distance:
+- script max_chr_distance.py (and .sh with paths that can be updated)
+- job 1326 (nscore and sum)
+- nscore results: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/max_neighborhood_distances.png
+  - 2639 No valid neighbors (possibly no GRASS score between Focus_Gene and its current neighbor)
+- sum results: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/max_neighborhood_distances.png
+  - 2830 No valid neighbors (possibly no GRASS score between Focus_Gene and its current neighbor)
+
+
+neighborhood length distribution:
+- pip install ptitprince for rainclounds
+- script neighborhood_lengths.py and .sh with the paths
+- job 1329 (nscore)
+- nscore results:
+Plot saved to results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/neighborhood_lengths_raincloud.png
+Summary statistics saved to results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/neighborhood_summary.tsv
+Detailed data saved to results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/neighborhood_lengths_detailed.tsv
+- sum results (see below FP c_no_result identification): 
+- job 1347
+- Plot saved to results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/neighborhood_lengths_raincloud.png
+  Summary statistics saved to results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/neighborhood_summary.tsv
+  Detailed data saved to results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/neighborhood_lengths_detailed.tsv
+
+
+
+Split of pairs with new FP (sum) no trans:
+- script find_c_no_results_fp.py
+- job 1346
+- Found 2420 C_no_result cases
+- results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_positives/all_C_no_results.tsv
+
+
+CactusSupportScore calculation for sum no trans:
+- coordinates conversion:
+  - provided script build_pair_coordinate_table.sh
+  - changed the paths for sum no trans
+  - made slurm wrapper run_build_pair_coordinate_table.sh what executes the script
+  - also changed the working directory for sum to gene_index_sum (line 42)
+  - job 1348
+  - result: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_positives/pairs_with_coords.tsv
+- caclulare cactus score:
+  - provided script get_cactus_score.sh
+  - changed the paths for sum no trans
+  - slurm wrapper run_get_cactus_score.sh
+  - also changed the working directory for sum to cactus_score_workdir_sum (line 19)
+  - job 1349
+  - results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_positives/pairs_with_cactus_score.tsv
+
+
+Implementing plotting the CactusSupportScore for FN:
+- Idea:
+  - script that splits gene-level FN table contradictory into two tables: focus_gene-cactus_orth and focus_gene-ps_orth
+  - run build_pair_coordinate_table.sh and get_cactus_score.sh with paths for boths tables
+  - script that merges the tables with cactus support score + plots 
+- table split:
+  - split_contradictory_fn.py 
+    - job 1351 (both)
+    - nscore:
+    results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_c_pairs.tsv
+    results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_n_pairs.tsv
+    results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_focus_candidate_map.tsv
+    - sum:
+    results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_c_pairs.tsv
+    results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_n_pairs.tsv
+    results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_focus_candidate_map.tsv
+  - build_pair_coordinate_table.sh
+    - working dirs gene_index_contradictory and inside for each case
+    - job 1355 (nscore, focus c)
+    - job 1356 (nscore focus n)
+    - job 1357 (sum focus c)
+    - job 1358 (sum focus n)
+  - get cactus score - running
+    - job 1359 nscore focus c 
+      - in the end got error e: command not found, but number of lines in c_with_coords and with cactus score correspond, for now keep it this way
+      - results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_c_pairs_with_cactus_score.tsv
+    - job 1360 nscore focus n 
+      - Results in: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_n_pairs_with_cactus_score.tsv
+    - job 1361 sum focus C
+      - same error, but number of lines correspond
+      - results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_c_pairs_with_cactus_score.tsv
+    - job 1362 sum focus N 
+      -
+  - plot
+    - script plot_cactus_score_contradictory_fn.py and .sh with paths
+    - job 1363 nscore:
+      Merged rows written: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_cactus_support_scores_merged.tsv
+      Plot written: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_cactus_support_scatter.png
+    - job sum:
+      Merged rows written: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_cactus_support_scores_merged.tsv
+      Plot written: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_negatives/contradictory_cactus_support_scatter.png
+
+
+Plot the distribution of Cactus Scores of FP no result:
+- script plot_cactus_score_no_result_fp.py and .sh with paths
+- job 1378
+- results:
+  - nscore: results/evaluation/mammalia/vs_prot_syn/nscore_approach/test_no_transitivity/disagreement_investigation/false_positives/cactus_score_distribution_no_result.png
+  - sum: results/evaluation/mammalia/vs_prot_syn/sum_approach/test_no_transitivity/disagreement_investigation/false_positives/cactus_score_distribution_no_result.png
+
+
+Synteny linear plots:
+  - custom script
+  - script run_linear_synteny.py executes the script synteny_with_legend.py
+  - script run_linear_synteny.sh slurm job
+  - results/linear_synteny_plots/linear_synteny_plot_forward.png
+  - results/linear_synteny_plots/label_scaffold_legend_forward.tsv
+
+
+21.01.2026
+----------
+
+Removed old plots and not related to thesis
+Answered the questions in introduction chapter (bullet points)
+
+
+What was done (21.01): Thesis methods bullet points; Introduction: answered questions defined in bullet points, found literature references
+Where: gene_relationship_classifier repository, on cactus-ref-free branch, bachelor.pdf
+Time: 5 hours
+Next steps: Introduction full text, Material full text
+
+22.01.2026
+----------
+
+uploaded bachelor/ with latex files
+combined readmes into one for the thesis
+
+What was done (22.01): looked for gene classification visualisation for Introduction; Written full text for Material; Combined cactus, buscomp, ptp and evaluation readme files for the thesis (not fully ready yet, still need to expand and do some refinements);
+Where: gene_relationship_classifier repository, on cactus-ref-free branch: the thesis:bachelor.pdf, thesis readme:bachelor_readme.md, LaTeX files: bachelor/
+Time: 7 hours
+Next steps: Methods full text; Start filling Results chapter with content; interpret the results and sketch Discussion bullet points with content
+
+
+
+
+  
