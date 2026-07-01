@@ -15,7 +15,7 @@ This repository documents the workflows and scripts used to identify and evaluat
 
 All paths in this README are in relation to the Bioserver. The repository contains only the scripts and plots that were used for the thesis. 
 
-In case some scripts are missing on the repository they are to be found on the server:
+Some scripts may not be included in this repository. If needed, they can be found on the server:
 
 - Cactus-related scripts, evaluation and 1:1 ortholog extraction for OrthoFinder: `/storage/EasyVectorOmics/cactus/gene_relationship_classifier/methods/`
 
