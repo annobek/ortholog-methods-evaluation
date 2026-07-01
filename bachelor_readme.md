@@ -396,7 +396,6 @@ source /storage/EasyVectorOmics/cactus/venv-analysis/bin/activate
 On the server, the scripts are located in
 `/storage/EasyVectorOmics/busco/methods/`,
 and during the analysis they were executed relative to that location.
-In the repository, they are stored in the `buscomp_scripts/` directory for display purposes only.
 
 The results are located in:
 `/storage/EasyVectorOmics/busco/results/`
