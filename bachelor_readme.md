@@ -1284,7 +1284,7 @@ Output:
   disagreement_investigation/false_positives/`
 
 
-#### B2) build_pair_coordinate_table.sh (located in methods/)
+#### B2) build_pair_coordinate_table.sh (located on the Bioserver in methods/)
 
 From a TSV file of gene pairs, extract:
   - Gene1, Species1
@@ -1320,7 +1320,7 @@ Coordinate conversion:
   - HAL: start0 = start1-1, length = end1-start1+1, end0 = start0+length
 
 
-#### B3) get_cactus_score.sh (located in methods/)
+#### B3) get_cactus_score.sh (located on the Bioserver in methods/)
 
 For every pair performs reciprocal liftover to estimate aligned overlap, measures
 sequence identity and alignment depth, and then combines them into:
